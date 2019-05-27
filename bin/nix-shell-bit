@@ -1,0 +1,260 @@
+#!/usr/bin/env bash
+
+set -eu
+
+bold=$(tput bold)
+red=$(tput setaf 1)
+yellow=$(tput setaf 3)
+reset=$(tput sgr0)
+
+SELF=nix-shell-bit
+CONFIG_FILE="${XDG_CONFIG_HOME:-${HOME}/.config}/$SELF/env"
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)
+LIBEXEC="${BASH_SOURCE[0]%/*}/../libexec"
+
+usage() {
+    cat <<EOF
+Usage:
+  $SELF [OPTIONS]
+
+Options:
+  --project=PROJECT  Use PROJECT instead of the current project
+  --version=VERSION  Use VERSION instead of the current version
+  --list             List available version(s)
+  --help             Show this help message
+
+Any options not recognized by $SELF will be passed to the nix-shell.
+
+EXAMPLES
+    Enter nix-shell for current project:
+        $SELF
+
+    Enter nix-shell for version 0.1.0.0 of current project:
+        $SELF --version=0.1.0.0
+
+    List all available versions for current project:
+        $SELF --list
+
+    List availability of a specific version:
+        $SELF --list --version=0.1.0.0
+
+    Pass additional options to nix-shell:
+        $SELF --pure --keep FOO
+EOF
+  exit "$1"
+} >&2
+
+currentProject() {
+    basename "$(git remote get-url origin 2>/dev/null)" .git
+}
+
+currentVersion() {
+    cabalPackageVersion    ||
+        nodePackageVersion ||
+        genericVersion
+}
+
+cabalPackageVersion() {
+    local files
+    mapfile -t files \
+        < <(find "$PROJECT_ROOT" -maxdepth 1 -type f -name '*.cabal') &&
+        (( ${#files[@]} == 1 )) &&
+        awk 'tolower($0) ~ /^version:/ {print $2; exit}' "${files[0]}"
+}
+
+nodePackageVersion() {
+    local file="$PROJECT_ROOT/package.json"
+    [ -f "$file" ] &&
+        grep -m 1 -oP '"version"\s*:\s*"\K[^"]+' "$file"
+}
+
+genericVersion() {
+    local files
+    mapfile -t files \
+        < <(find "$PROJECT_ROOT" -maxdepth 1 -type f -iname 'version') &&
+        (( ${#files[@]} == 1 )) &&
+        cat "${files[0]}"
+}
+
+askUrl() {
+    cat <<EOF
+
+${yellow}NIX_SHELL_BIT_URL not found in environment or config.${reset}
+It should identify a git repo where we can find nix derivations
+for your project shells. E.g. git@github.com:Foo/nix-shells.git
+EOF
+    read -erp "Please enter ${bold}NIX_SHELL_BIT_URL${reset}: " NIX_SHELL_BIT_URL
+    echo
+} >&2
+
+askSaveConfig() {
+    if confirm "Save config to ${CONFIG_FILE/~/\~} ?"
+    then
+        mkdir -p "${CONFIG_FILE%/*}"
+        printf ': "${NIX_SHELL_BIT_URL:=%s}"\n' "$NIX_SHELL_BIT_URL" \
+            >> "$CONFIG_FILE"
+    fi
+    echo
+}
+
+confirm() {
+    local choices="[${bold}Y${reset}/n]"
+    echo -n "$1 $choices "
+
+    while read -r
+    do
+        case "$(tr '[:upper:]' '[:lower:]' <<< $"$REPLY")" in
+            y|yes|'') return 0 ;;
+            n|no)     return 1 ;;
+            *)
+                echo -n "Please answer y or n ${choices} " ;;
+        esac
+    done
+} >&2
+
+availableTags() {
+    git ls-remote --tags --sort=version:refname \
+        "$NIX_SHELL_BIT_URL" "$PROJECT-*"
+}
+
+taggedVersions() {
+    awk -F "refs/tags/$PROJECT-" 'NF > 1 { print $NF }'
+}
+
+requireVersions() {
+    (( $# > 0 )) || oops "${yellow}No versions available for $PROJECT${reset}"
+}
+
+requireVersion() {
+    local v
+    for v in "$@"
+    do
+        [ "$v" == "$VERSION" ] && return 0
+    done
+
+    echo "${yellow}Version $VERSION not found${reset}"
+    echo "The following versions are available using --version=VERSION"
+    listVersions "$@"
+    exit 1
+} >&2
+
+listVersions() {
+    local v versions=()
+
+    for v in "$@"
+    do
+        versions+=( "$(versionHighlight "$v")${v}${reset}" )
+    done
+
+    column <<< "${versions[@]}"
+}
+
+versionHighlight() {
+    if [ "$1" == "$VERSION" ]
+    then
+        tput bold
+    fi
+}
+
+nixShell() {
+    if [ -z "${NIX_SHELL_BIT_BRANCH-}" ]
+    then
+        requireVersions "$@"
+        requireVersion "$@"
+    fi
+
+    exec nix-shell "$(derivation)" --attr "$PROJECT" "${NIX_SHELL_OPTIONS[@]}"
+}
+
+derivation() {
+    local ref archive
+
+    if [ -n "${NIX_SHELL_BIT_BRANCH-}" ]
+    then
+        ref="$NIX_SHELL_BIT_BRANCH"
+    else
+        ref="$PROJECT-$VERSION"
+    fi
+
+    archive=$("$LIBEXEC/archive-url" "$NIX_SHELL_BIT_URL" "$ref")
+
+    if [ -n "$archive" ]
+    then
+        echo "$archive"
+    else
+        tmpClone "$ref"
+    fi
+}
+
+tmpClone() {
+    local tmp ref="$1"
+
+    tmp=$(mktemp -dt "$SELF-$PROJECT.XXXXXX")
+    git clone --quiet --template='' "$NIX_SHELL_BIT_URL" "$tmp" &&
+        git -C "$tmp" checkout --quiet "$ref" &&
+        echo "$tmp"
+}
+
+oops() {
+    echo "$@"
+    exit 1
+} >&2
+
+NIX_SHELL_OPTIONS=()
+
+while (( $# > 0 ))
+do
+    case "$1" in
+        --project=*)
+            PROJECT="${1#--project=}"
+            shift ;;
+        --version=*)
+            VERSION="${1#--version=}"
+            shift ;;
+        --list)
+            LIST=true
+            shift ;;
+        -h|--help)
+            usage 0 ;;
+        *)
+            NIX_SHELL_OPTIONS+=( "$1" )
+            shift ;;
+    esac
+done
+
+# Assign defaults to any empty values.
+: "${PROJECT:=$(currentProject)}"
+: "${VERSION:=$(currentVersion)}"
+: "${LIST:=false}"
+
+if [ -z "$PROJECT" ]
+then
+    oops -e \
+        "${yellow}Couldn't detect project${reset}" \
+        "\nTry --project=PROJECT" \
+        "\n(or --help for more options)"
+fi
+
+if [ -z "$VERSION" ] && [ -z "${NIX_SHELL_BIT_BRANCH-}" ] && ! $LIST
+then
+    oops -e \
+        "${yellow}Couldn't detect version${reset}" \
+        "\nTry --version=VERSION" \
+        "\n(or --help for more options)"
+fi
+
+# Detect config
+[ -f "$CONFIG_FILE" ] && . "$CONFIG_FILE"
+[ -z "${NIX_SHELL_BIT_URL-}" ] && askUrl
+[ -f "$CONFIG_FILE" ] || askSaveConfig
+
+tags=$(availableTags)
+mapfile -t versions < <(taggedVersions <<< "$tags")
+
+if $LIST
+then
+    requireVersions "${versions[@]}"
+    listVersions "${versions[@]}"
+else
+    nixShell "${versions[@]}"
+fi
