@@ -41,8 +41,17 @@ in runCommand "nix-shell-bit" {
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 } ''
-  install -D -m755 ${./bin}/$name $out/bin/$name
-  install -D -m755 ${./libexec}/archive-url $out/libexec/archive-url
+  install -D -m755 \
+      ${./bin}/$name \
+      $out/bin/$name
+
+  install -D -m755 \
+      ${./libexec}/archive-url \
+      $out/libexec/archive-url
+
+  install -D -m644 \
+      ${./completions}/_$name.bash \
+      $out/share/bash-completion/completions/$name
 
   sed -i "s|^LIBEXEC=.*|LIBEXEC=$out/libexec|" $out/bin/$name
 
