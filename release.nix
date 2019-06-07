@@ -1,1 +1,5 @@
-{ pkgs ? import <nixpkgs> {} }: pkgs.callPackage ./default.nix { }
+{ pkgs ? import <nixpkgs> {} }:
+
+{
+  nix-shell-bit = pkgs.haskellPackages.callPackage ./nix-shell-bit.nix { };
+}
