@@ -1,8 +1,7 @@
 module NixShellBit.Options
-  ( Args(..)
+  ( CmdLine(..)
   , Options(..)
-  , Command(..)
-  , args
+  , cmdline
   ) where
 
 import Data.Semigroup ((<>))
@@ -11,36 +10,46 @@ import Options.Applicative (Parser, command, help, info, long,
                             strOption, subparser, (<|>))
 
 
-data Args = Args Options Command
+data CmdLine
+  = Exec Options
+  | List Options
+  deriving Show
 
 
-data Options = Options
-  { projects :: [Project]
-  , versions :: [Version]
-  }
+data Options
+  = Options [Project] [Version]
+  deriving Show
 
 
-data Command
-  = Exec
-  | List
+newtype Project
+  = Project String
+  deriving Show
 
 
-type Project = String
-type Version = String
+newtype Version
+  = Version String
+  deriving Show
 
 
-args :: Parser Args
-args = Args
-    <$> ( Options
-       <$> many project
-       <*> many version
-        )
-    <*> ( subparser
-           ( exec
-          <> list
-           )
-       <|> pure Exec
-        )
+cmdline :: Parser CmdLine
+cmdline =
+    subparser (exec <> list)
+   <|>
+    (defaultCommand <$> opts)
+  where
+    exec = command "exec" $
+      info (Exec <$> opts) (progDesc "Enter project's nix-shell")
+
+    list = command "list" $
+      info (List <$> opts) (progDesc "List available version(s)")
+
+    defaultCommand = Exec
+
+
+opts :: Parser Options
+opts = Options
+    <$> many (Project <$> project)
+    <*> many (Version <$> version)
   where
     project = strOption
       ( long "project"
@@ -48,16 +57,9 @@ args = Args
      <> metavar "PROJECT"
      <> help "Use PROJECT instead of the current project"
       )
-
     version = strOption
       ( long "version"
      <> short 'v'
      <> metavar "VERSION"
      <> help "Use VERSION instead of the current version"
       )
-
-    exec = command "exec" $
-      info (pure Exec) (progDesc "Enter project's nix-shell")
-
-    list = command "list" $
-      info (pure List) (progDesc "List available version(s)")

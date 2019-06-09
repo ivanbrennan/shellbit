@@ -59,5 +59,19 @@ nix-shell --run '
 '
 ```
 
+To install haskell implementation:
+```sh
+rm -f .ghc.environment.*
+nix-env --install --file release.nix --attr nix-shell-bit
+```
+
+```
+nix-shell --run 'cabal v2-build --ghc-options=-Werror'
+: ${oldPath:=$PATH}
+PATH=$PWD/dist-newstyle/build/x86_64-linux/ghc-8.6.5/nix-shell-bit-0.1.0.0/x/nix-shell-bit/build/nix-shell-bit:$PATH
+. <(nix-shell-bit --bash-completion-script nix-shell-bit \
+    | sed 's/^complete\b.* -F /complete -o bashdefault -o default -F /')
+```
+
 Todos:
 - [ ] pin nixpkgs and ghc
