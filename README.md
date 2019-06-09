@@ -35,3 +35,9 @@ env = Nothing :: Maybe [(String, String)]
 
 executeFile "nix-shell" search args env
 ```
+
+## Completions
+
+```sh
+eval "$(nix-shell-bit --help=bash)"
+```
