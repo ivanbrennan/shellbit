@@ -1,10 +1,6 @@
 module NixShellBit.Main
-  ( nixShellBit
+  ( helloWorld
   ) where
 
-import NixShellBit.CmdLine (getCmd)
-
-
-nixShellBit :: IO ()
-nixShellBit =
-  getCmd >>= print
+helloWorld :: String
+helloWorld = "hello world!"
