@@ -13,8 +13,10 @@ extra-source-files:  README.md
 library
   exposed-modules:
       NixShellBit.Main
+      NixShellBit.Options
   build-depends:
-      base >=4.12 && <5
+      base >= 4.12 && < 5
+    , optparse-applicative >= 0.14 && < 0.15
   hs-source-dirs:
       src
   ghc-options: -Wall -O2

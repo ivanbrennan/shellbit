@@ -35,3 +35,29 @@ env = Nothing :: Maybe [(String, String)]
 
 executeFile "nix-shell" search args env
 ```
+
+To build and try in the nix shell:
+
+```sh
+nix-shell
+cabal v2-build --ghc-options=-Werror
+cabal v2-exec nix-shell-bit -- --help
+```
+
+To generate bash/zsh completion scripts:
+
+```sh
+nix-shell --run '
+  cabal v2-build --ghc-options=-Werror &&
+  cabal v2-exec nix-shell-bit -- \
+      --bash-completion-script nix-shell-bit \
+      | sed 's/^complete\b.* -F /complete -o bashdefault -o default -F /' \
+      > completions/_nix-shell-bit.bash &&
+  cabal v2-exec nix-shell-bit -- \
+      --zsh-completion-script nix-shell-bit \
+      > completions/_nix-shell-bit.zsh
+'
+```
+
+Todos:
+- [ ] pin nixpkgs and ghc

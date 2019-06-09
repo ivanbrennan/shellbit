@@ -1,6 +1,6 @@
 module Main where
 
-import NixShellBit.Main (helloWorld)
+import NixShellBit.Main (nixShellBit)
 
 main :: IO ()
-main = putStrLn helloWorld
+main = nixShellBit
