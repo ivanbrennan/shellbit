@@ -5,8 +5,8 @@ module NixShellBit.Options
   ) where
 
 import Data.Semigroup ((<>))
-import Options.Applicative (Parser, command, help, info, long,
-                            many, metavar, progDesc, short,
+import Options.Applicative (Parser, command, help, info, long, many,
+                            metavar, progDesc, short, strArgument,
                             strOption, subparser, (<|>))
 
 
@@ -17,7 +17,7 @@ data CmdLine
 
 
 data Options
-  = Options [Project] [Version]
+  = Options [Project] [Version] [Arg]
   deriving Show
 
 
@@ -28,6 +28,11 @@ newtype Project
 
 newtype Version
   = Version String
+  deriving Show
+
+
+newtype Arg
+  = Arg String
   deriving Show
 
 
@@ -50,6 +55,7 @@ opts :: Parser Options
 opts = Options
     <$> many (Project <$> project)
     <*> many (Version <$> version)
+    <*> many (Arg <$> arg)
   where
     project = strOption
       ( long "project"
@@ -63,3 +69,4 @@ opts = Options
      <> metavar "VERSION"
      <> help "Use VERSION instead of the current version"
       )
+    arg = strArgument (metavar "ARG")
