@@ -74,4 +74,7 @@ PATH=$PWD/dist-newstyle/build/x86_64-linux/ghc-8.6.5/nix-shell-bit-0.1.0.0/x/nix
 ```
 
 Todos:
+- [ ] mkCompleter (project, trailing args, etc.)
+- [ ] https://haskell.fpcomplete.com/library/optparse-applicative
+- [ ] use conduit-extra
 - [ ] pin nixpkgs and ghc

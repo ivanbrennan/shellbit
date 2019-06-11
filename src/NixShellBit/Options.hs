@@ -1,6 +1,8 @@
 module NixShellBit.Options
   ( CmdLine(..)
   , Options(..)
+  , Project(..)
+  , Version(..)
   , cmdline
   ) where
 
@@ -16,9 +18,11 @@ data CmdLine
   deriving Show
 
 
-data Options
-  = Options [Project] [Version] [Arg]
-  deriving Show
+data Options = Options
+  { projects :: [Project]
+  , versions :: [Version]
+  , args     :: [Arg]
+  } deriving Show
 
 
 newtype Project
@@ -69,4 +73,7 @@ opts = Options
      <> metavar "VERSION"
      <> help "Use VERSION instead of the current version"
       )
-    arg = strArgument (metavar "ARG")
+    arg = strArgument
+      ( metavar "ARG..."
+     <> help "Args to pass to nix-shell"
+      )
