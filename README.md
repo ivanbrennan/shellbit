@@ -51,7 +51,6 @@ nix-shell --run '
   cabal v2-build --ghc-options=-Werror &&
   cabal v2-exec nix-shell-bit -- \
       --bash-completion-script nix-shell-bit \
-      | sed 's/^complete\b.* -F /complete -o bashdefault -o default -F /' \
       > completions/_nix-shell-bit.bash &&
   cabal v2-exec nix-shell-bit -- \
       --zsh-completion-script nix-shell-bit \
@@ -69,12 +68,10 @@ nix-env --install --file release.nix --attr nix-shell-bit
 nix-shell --run 'cabal v2-build --ghc-options=-Werror'
 : ${oldPath:=$PATH}
 PATH=$PWD/dist-newstyle/build/x86_64-linux/ghc-8.6.5/nix-shell-bit-0.1.0.0/x/nix-shell-bit/build/nix-shell-bit:$PATH
-. <(nix-shell-bit --bash-completion-script nix-shell-bit \
-    | sed 's/^complete\b.* -F /complete -o bashdefault -o default -F /')
+. <(nix-shell-bit --bash-completion-script nix-shell-bit)
 ```
 
 Todos:
-- [ ] mkCompleter (project, trailing args, etc.)
 - [ ] https://haskell.fpcomplete.com/library/optparse-applicative
 - [ ] use conduit-extra
 - [ ] pin nixpkgs and ghc

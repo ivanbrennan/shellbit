@@ -1,27 +1,21 @@
 module NixShellBit.Options
-  ( CmdLine(..)
+  ( Command(..)
   , Options(..)
   , Project(..)
   , Version(..)
-  , cmdline
+  , options
   ) where
 
-import Data.Semigroup ((<>))
-import Options.Applicative (Parser, command, help, info, long, many,
-                            metavar, progDesc, short, strArgument,
-                            strOption, subparser, (<|>))
-
-
-data CmdLine
-  = Exec Options
-  | List Options
-  deriving Show
+import Data.Semigroup      ((<>))
+import Options.Applicative (Parser, action, help, long, many, metavar,
+                            short, strArgument, strOption, flag')
 
 
 data Options = Options
-  { projects :: [Project]
-  , versions :: [Version]
-  , args     :: [Arg]
+  { optProject :: Maybe Project
+  , optVersion :: Maybe Version
+  , optCommand :: Maybe Command
+  , optArgs    :: [Arg]
   } deriving Show
 
 
@@ -35,30 +29,22 @@ newtype Version
   deriving Show
 
 
+data Command
+  = Exec
+  | List
+  deriving Show
+
+
 newtype Arg
   = Arg String
   deriving Show
 
 
-cmdline :: Parser CmdLine
-cmdline =
-    subparser (exec <> list)
-   <|>
-    (defaultCommand <$> opts)
-  where
-    exec = command "exec" $
-      info (Exec <$> opts) (progDesc "Enter project's nix-shell")
-
-    list = command "list" $
-      info (List <$> opts) (progDesc "List available version(s)")
-
-    defaultCommand = Exec
-
-
-opts :: Parser Options
-opts = Options
-    <$> many (Project <$> project)
-    <*> many (Version <$> version)
+options :: Parser Options
+options = Options
+    <$> (maybeLast <$> many (Project <$> project))
+    <*> (maybeLast <$> many (Version <$> version))
+    <*> (maybeLast <$> many cmd)
     <*> many (Arg <$> arg)
   where
     project = strOption
@@ -73,7 +59,16 @@ opts = Options
      <> metavar "VERSION"
      <> help "Use VERSION instead of the current version"
       )
+    cmd = flag' List
+      ( long "list"
+     <> short 'l'
+     <> help "List available version(s)"
+      )
     arg = strArgument
       ( metavar "ARG..."
      <> help "Args to pass to nix-shell"
+     <> action "file"
       )
+
+    maybeLast [] = Nothing
+    maybeLast xs = Just (last xs)
