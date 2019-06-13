@@ -6,8 +6,8 @@ module NixShellBit.Options
   , options
   ) where
 
-import Options.Applicative (Parser, action, help, long, many, metavar,
-                            short, strArgument, strOption, flag')
+import Options.Applicative (Parser, action, flag', help, long, many,
+                            metavar, short, strArgument, strOption)
 
 
 data Options = Options
