@@ -6,7 +6,6 @@ module NixShellBit.Options
   , options
   ) where
 
-import Data.Semigroup      ((<>))
 import Options.Applicative (Parser, action, help, long, many, metavar,
                             short, strArgument, strOption, flag')
 
