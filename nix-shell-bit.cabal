@@ -14,6 +14,8 @@ library
   exposed-modules:
       NixShellBit.Main
       NixShellBit.Options
+  other-modules:
+      Paths_nix_shell_bit
   build-depends:
       base >= 4.12 && < 5
     , optparse-applicative >= 0.14 && < 0.15

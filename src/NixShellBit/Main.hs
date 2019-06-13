@@ -3,17 +3,22 @@ module NixShellBit.Main
   ) where
 
 import Data.Maybe          (fromMaybe)
+import Data.Version        (showVersion)
 import NixShellBit.Options (Options, Project(Project), Version(Version),
                             Command(Exec), options, optProject,
                             optVersion, optCommand, optArgs)
-import Options.Applicative (briefDesc, execParser, info, helper)
+import Options.Applicative (briefDesc, execParser, info, infoOption,
+                            helper, hidden, short)
+
+import qualified Paths_nix_shell_bit as Self
 
 
 nixShellBit :: IO ()
 nixShellBit =
     run =<< execParser o
   where
-    o = info (helper <*> options) briefDesc
+    o = info (helper <*> v <*> options) briefDesc
+    v = infoOption (showVersion Self.version) (short 'V' <> hidden)
 
 
 run :: Options -> IO ()
