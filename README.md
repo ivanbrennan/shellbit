@@ -36,6 +36,11 @@ env = Nothing :: Maybe [(String, String)]
 executeFile "nix-shell" search args env
 ```
 
+To update `nix-shell-bit.nix`:
+```sh
+cabal2nix . > nix-shell-bit.nix
+```
+
 To build and try in the nix shell:
 
 ```sh
@@ -69,6 +74,13 @@ nix-shell --run 'cabal v2-build --ghc-options=-Werror'
 : ${oldPath:=$PATH}
 PATH=$PWD/dist-newstyle/build/x86_64-linux/ghc-8.6.5/nix-shell-bit-0.1.0.0/x/nix-shell-bit/build/nix-shell-bit:$PATH
 . <(nix-shell-bit --bash-completion-script nix-shell-bit)
+```
+
+https://libgit2.org/libgit2/ex/v0.18.0/general.html
+
+hlibgit2
+```
+ghc --make -no-keep-hi-files -no-keep-o-files proto.hs
 ```
 
 Todos:
