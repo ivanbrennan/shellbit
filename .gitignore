@@ -3,3 +3,6 @@ cabal.project.local
 
 /dist-*/
 /dist/
+
+*.hi
+*.o
