@@ -3,16 +3,20 @@
 module Main (main) where
 
 import Bindings.Libgit2  (C'git_config, C'git_remote, C'git_repository,
+                          C'git_strarray(C'git_strarray),
                           c'git_config_open_ondisk, c'git_config_free,
                           c'git_config_get_string, c'git_remote_load,
                           c'git_remote_url, c'git_remote_free,
+                          c'git_remote_list,
                           c'git_repository_open, c'git_repository_free,
                           c'git_repository_open_ext,
-                          c'git_repository_discover, withLibGitDo)
+                          c'git_repository_discover, c'git_strarray_free,
+                          withLibGitDo)
 import Control.Exception (finally)
 import Control.Monad     (when, (>=>))
 import Data.List         (intercalate)
-import Foreign           (Ptr, alloca, peek, sizeOf, allocaBytes, fromBool)
+import Foreign           (Ptr, alloca, peek, sizeOf, allocaBytes, fromBool,
+                          plusPtr)
 import Foreign.C.String  (CString, peekCString, withCString)
 import Foreign.C.Types   (CChar, CInt, CUInt, CSize)
 import System.Directory  (getCurrentDirectory, getHomeDirectory)
@@ -22,6 +26,9 @@ import System.FilePath   (takeBaseName, (</>))
 newtype Project = Project String
 
 
+-- TODO: Handle case where PWD is outside of a git repo.
+-- Currently we fail with:
+-- libgit2/src/global.c:151: git__global_state: Assertion `_tls_init' failed.
 main :: IO ()
 main = do
     startPath   <- getCurrentDirectory
@@ -45,6 +52,10 @@ main = do
       url <- gitConfigGetString repoPath "remote.origin.url"
       args <- nixShellArgs (project url)
       print args
+
+    withLibGitDo $ do
+      remotes <- gitRemoteList repoPath
+      print remotes
   where
     project :: FilePath -> Project
     project = Project . takeBaseName
@@ -101,6 +112,25 @@ gitRemoteGetUrl repoPath name =
   withRepo repoPath $ \repo ->
     withRemote repo name
       (c'git_remote_url >=> peekCString)
+
+
+gitRemoteList
+  :: FilePath
+  -> IO [String]
+gitRemoteList repoPath =
+    withRepo repoPath $ \repo ->
+      alloca          $ \out -> do
+        exit <- c'git_remote_list out repo
+        checkError exit "c'git_remote_list"
+        C'git_strarray cstrings count <- peek out
+        mapM
+          (\i ->
+            peek (plusPtr cstrings (i * step)) >>= peekCString
+          )
+          [0 .. fromIntegral (count - 1)]
+  where
+    step :: Int
+    step = sizeOf (undefined :: Ptr CString)
 
 
 gitConfigGetString
