@@ -14,7 +14,7 @@ import Bindings.Libgit2  (C'git_config, C'git_remote, C'git_repository,
                           withLibGitDo)
 import Control.Exception (finally)
 import Control.Monad     (when, (>=>))
-import Data.List         (intercalate)
+import Data.List         (intercalate, sortOn)
 import Foreign           (Ptr, alloca, peek, sizeOf, allocaBytes, fromBool,
                           plusPtr)
 import Foreign.C.String  (CString, peekCString, withCString)
@@ -55,7 +55,7 @@ main = do
 
     withLibGitDo $ do
       remotes <- gitRemoteList repoPath
-      print remotes
+      print $ take 1 (sortOn (/= "origin") remotes)
   where
     project :: FilePath -> Project
     project = Project . takeBaseName
