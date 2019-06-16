@@ -7,13 +7,14 @@ import Bindings.Libgit2  (C'git_config, C'git_remote, C'git_repository,
                           c'git_config_get_string, c'git_remote_load,
                           c'git_remote_url, c'git_remote_free,
                           c'git_repository_open, c'git_repository_free,
+                          c'git_repository_open_ext,
                           c'git_repository_discover, withLibGitDo)
 import Control.Exception (finally)
 import Control.Monad     (when, (>=>))
 import Data.List         (intercalate)
 import Foreign           (Ptr, alloca, peek, sizeOf, allocaBytes, fromBool)
 import Foreign.C.String  (CString, peekCString, withCString)
-import Foreign.C.Types   (CChar, CInt, CSize)
+import Foreign.C.Types   (CChar, CInt, CUInt, CSize)
 import System.Directory  (getCurrentDirectory, getHomeDirectory)
 import System.FilePath   (takeBaseName, (</>))
 
@@ -26,6 +27,14 @@ main = do
     startPath   <- getCurrentDirectory
     ceilingDirs <- pure <$> getHomeDirectory
     repoPath    <- discoverRepo startPath ceilingDirs
+
+    withLibGitDo $ do
+      url <- withFoundRepo startPath ceilingDirs $ \repo ->
+               withRemote repo "origin"
+                 (c'git_remote_url >=> peekCString)
+
+      args <- nixShellArgs (project url)
+      print args
 
     withLibGitDo $ do
       url <- gitRemoteGetUrl repoPath "origin"
@@ -106,6 +115,28 @@ gitConfigGetString repoPath key =
         (\out -> c'git_config_get_string out cfg key')
         (const $ pure ())
         peekCString
+
+
+withFoundRepo
+  :: FilePath
+  -> [String]
+  -> (Ptr C'git_repository -> IO a)
+  -> IO a
+withFoundRepo startPath ceilingDirs =
+    bracketResource
+      "c'git_repository_open_ext"
+      (\out ->
+        withCString startPath  $ \start_path ->
+          withCString ceiling' $ \ceiling_dirs ->
+            c'git_repository_open_ext out start_path flags ceiling_dirs
+      )
+      c'git_repository_free
+  where
+    ceiling' :: String
+    ceiling' = intercalate ":" ceilingDirs
+
+    flags :: CUInt
+    flags = 0
 
 
 withRepo
