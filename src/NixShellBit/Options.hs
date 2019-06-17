@@ -1,11 +1,11 @@
 module NixShellBit.Options
   ( Command(..)
   , Options(..)
-  , Project(..)
   , Version(..)
   , options
   ) where
 
+import NixShellBit.Project (Project(Project))
 import Options.Applicative (Parser, action, flag', help, long, many,
                             metavar, short, strArgument, strOption)
 
@@ -16,11 +16,6 @@ data Options = Options
   , optCommand :: Maybe Command
   , optArgs    :: [Arg]
   } deriving Show
-
-
-newtype Project
-  = Project String
-  deriving Show
 
 
 newtype Version

@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module NixShellBit.Git
-  ( discoverRepo
+  ( gitDiscoverRepo
   , gitRemoteGetUrl
   , gitRemoteList
   ) where
@@ -29,11 +29,11 @@ import Foreign.C.Types    (CChar, CInt, CSize)
 import NixShellBit.PPrint (Doc, red, die, text)
 
 
-discoverRepo
+gitDiscoverRepo
   :: FilePath
   -> [String]
   -> IO (Maybe FilePath)
-discoverRepo startPath ceilingDirs =
+gitDiscoverRepo startPath ceilingDirs =
     withLibGitDo $
     withCString startPath  $ \start_path ->
       withCString ceiling' $ \ceiling_dirs ->

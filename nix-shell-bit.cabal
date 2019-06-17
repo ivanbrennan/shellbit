@@ -16,6 +16,7 @@ library
   other-modules:
       NixShellBit.Git
       NixShellBit.Options
+      NixShellBit.Project
       NixShellBit.PPrint
       Paths_nix_shell_bit
   build-depends:

@@ -2,20 +2,15 @@ module NixShellBit.Main
   ( nixShellBit
   ) where
 
-import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
 import Data.Maybe          (fromMaybe)
-import Data.List           (sortOn)
 import Data.Version        (showVersion)
-import NixShellBit.Git     (discoverRepo, gitRemoteList, gitRemoteGetUrl)
 import NixShellBit.PPrint  (text, vcat, yellow, line, die)
-import NixShellBit.Options (Options, Project(Project), Version(Version),
+import NixShellBit.Options (Options, Version(Version),
                             Command(Exec), options, optProject,
                             optVersion, optCommand, optArgs)
+import NixShellBit.Project (Project, detectProject)
 import Options.Applicative (briefDesc, execParser, info, infoOption,
                             helper, hidden, short)
-import Safe                (headMay)
-import System.Directory    (getCurrentDirectory, getHomeDirectory)
-import System.FilePath     (takeBaseName)
 
 import qualified Paths_nix_shell_bit as Self
 
@@ -39,30 +34,10 @@ run opts = do
     project =
       case optProject opts of
         Just pjt -> pure (Just pjt)
-        Nothing  -> do
-          startPath   <- getCurrentDirectory
-          ceilingDirs <- pure <$> getHomeDirectory
-          runMaybeT (detectProject startPath ceilingDirs)
+        Nothing  -> detectProject
 
     version = fromMaybe (Version "currentVersion") . optVersion
     command = fromMaybe Exec . optCommand
-
-
-detectProject
-  :: FilePath
-  -> [String]
-  -> MaybeT IO Project
-detectProject startPath ceilingDirs = do
-    repoPath <- MaybeT (discoverRepo startPath ceilingDirs)
-    remote   <- MaybeT (gitRemoteList repoPath >>= prefer "origin")
-
-    MaybeT
-     . fmap (Just . Project . takeBaseName)
-     $ gitRemoteGetUrl repoPath remote
-  where
-    prefer :: String -> [String] -> IO (Maybe String)
-    prefer favorite xs =
-      pure . headMay $ sortOn (/= favorite) xs
 
 
 oopsNoProject :: IO a
