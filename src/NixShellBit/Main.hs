@@ -5,10 +5,10 @@ module NixShellBit.Main
 import Data.Maybe          (fromMaybe)
 import Data.Version        (showVersion)
 import NixShellBit.PPrint  (text, vcat, yellow, line, die)
-import NixShellBit.Options (Options, Version(Version),
-                            Command(Exec), options, optProject,
+import NixShellBit.Options (Options, Command(Exec), options, optProject,
                             optVersion, optCommand, optArgs)
 import NixShellBit.Project (Project, detectProject)
+import NixShellBit.Version (Version, detectVersion)
 import Options.Applicative (briefDesc, execParser, info, infoOption,
                             helper, hidden, short)
 
@@ -24,19 +24,25 @@ nixShellBit =
 
 
 run :: Options -> IO ()
-run opts = do
+run opts =
+  do
     project >>= maybe oopsNoProject print
-    print (version opts)
+    version >>= maybe oopsNoVersion print
     print (command opts)
     print (optArgs opts)
   where
     project :: IO (Maybe Project)
     project =
       case optProject opts of
-        Just pjt -> pure (Just pjt)
-        Nothing  -> detectProject
+        Just pj -> pure (Just pj)
+        Nothing -> detectProject
 
-    version = fromMaybe (Version "currentVersion") . optVersion
+    version :: IO (Maybe Version)
+    version =
+      case optVersion opts of
+        Just vn -> pure (Just vn)
+        Nothing -> detectVersion
+
     command = fromMaybe Exec . optCommand
 
 
@@ -45,6 +51,14 @@ oopsNoProject =
   die $ vcat
       [ yellow (text "Could not detect project")
       , text "Try --project=PROJECT"
-      , text "(or --help for more options)"
+      , line
+      ]
+
+
+oopsNoVersion :: IO a
+oopsNoVersion =
+  die $ vcat
+      [ yellow (text "Could not detect version")
+      , text "Try --version=VERSION"
       , line
       ]

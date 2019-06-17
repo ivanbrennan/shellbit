@@ -3,7 +3,8 @@ module NixShellBit.Project
   , detectProject
   ) where
 
-import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
+import Control.Monad.Trans.Maybe
+                        (MaybeT(MaybeT), runMaybeT)
 import Data.List        (sortOn)
 import NixShellBit.Git  (gitDiscoverRepo, gitRemoteList, gitRemoteGetUrl)
 import Safe             (headMay)

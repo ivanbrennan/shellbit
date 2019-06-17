@@ -39,6 +39,7 @@ executeFile "nix-shell" search args env
 To update `nix-shell-bit.nix`:
 ```sh
 cabal2nix . > nix-shell-bit.nix
+rm -f .ghc.environment.*
 ```
 
 To build and try in the nix shell:
