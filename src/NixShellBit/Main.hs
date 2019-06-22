@@ -2,9 +2,11 @@ module NixShellBit.Main
   ( nixShellBit
   ) where
 
+import Control.Monad       (when)
 import Data.Maybe          (fromMaybe)
 import Data.Version        (showVersion)
-import NixShellBit.Config  (Config, askConfig, readConfig)
+import NixShellBit.Config  (Config, askConfig, findConfig, readConfig,
+                            saveConfig)
 import NixShellBit.PPrint  (oopsNoProject, oopsNoVersion)
 import NixShellBit.Options (Options, Command(Exec), options, optProject,
                             optVersion, optCommand, optArgs)
@@ -27,22 +29,32 @@ nixShellBit =
 run :: Options -> IO ()
 run opts =
   do
-    config >>= print
-    project >>= maybe oopsNoProject print
-    version >>= maybe oopsNoVersion print
+    config <- getConfig
+    print config
+
+    project <- getProject
+    maybe oopsNoProject print project
+
+    version <- getVersion
+    maybe oopsNoVersion print version
+
     print (command opts)
     print (optArgs opts)
   where
-    config :: IO Config
-    config =
-      maybe askConfig pure =<< readConfig
+    getConfig :: IO Config
+    getConfig =
+      do
+        path   <- findConfig
+        config <- maybe askConfig readConfig path
+        when (null path) (saveConfig config)
+        pure config
 
-    project :: IO (Maybe Project)
-    project =
+    getProject :: IO (Maybe Project)
+    getProject =
       maybe detectProject (pure . Just) (optProject opts)
 
-    version :: IO (Maybe Version)
-    version =
+    getVersion :: IO (Maybe Version)
+    getVersion =
       maybe detectVersion (pure . Just) (optVersion opts)
 
     command = fromMaybe Exec . optCommand

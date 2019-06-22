@@ -17,7 +17,7 @@ import Distribution.Pretty       (prettyShow)
 import Distribution.Verbosity    (silent)
 import NixShellBit.Git           (gitDiscoverRepo)
 import System.Directory          (getCurrentDirectory, getHomeDirectory)
-import System.FilePath           ((</>))
+import System.FilePath           (dropTrailingPathSeparator, takeDirectory)
 import System.FilePath.Find      (FileType(RegularFile), depth, extension,
                                   fileName, fileType, find, (==?), (&&?))
 
@@ -47,7 +47,8 @@ detectVersion =
       <|> fromGenericPkg dir
   where
     parentDirectory :: FilePath -> FilePath
-    parentDirectory = (</> "../")
+    parentDirectory =
+      takeDirectory . dropTrailingPathSeparator
 
     fromCabalPkg :: FilePath -> IO (Maybe Version)
     fromCabalPkg =
@@ -96,7 +97,7 @@ detectVersion =
       MaybeT . decodeFileStrict
 
     genericPkgVersion :: FilePath -> MaybeT IO Version
-    genericPkgVersion filepath =
+    genericPkgVersion path =
       do
-        line <- MaybeT (listToMaybe . C8.lines <$> C8.readFile filepath)
+        line <- MaybeT (listToMaybe . C8.lines <$> C8.readFile path)
         pure $ Version (C8.unpack line)

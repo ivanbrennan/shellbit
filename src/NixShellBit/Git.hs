@@ -27,6 +27,7 @@ import Foreign            (Ptr, alloca, peek, sizeOf, allocaBytes,
 import Foreign.C.String   (CString, peekCString, withCString)
 import Foreign.C.Types    (CChar, CInt, CSize)
 import NixShellBit.PPrint (fatalError)
+import System.FilePath    (searchPathSeparator)
 
 
 gitDiscoverRepo :: FilePath -> [String] -> IO (Maybe FilePath)
@@ -47,7 +48,7 @@ gitDiscoverRepo startPath ceilingDirs =
                 | otherwise            -> fatal "c'git_repository_discover"
   where
     ceiling' :: String
-    ceiling' = intercalate ":" ceilingDirs
+    ceiling' = intercalate [searchPathSeparator] ceilingDirs
 
     bytes :: Int
     bytes = 256 * sizeOf (undefined :: CChar)

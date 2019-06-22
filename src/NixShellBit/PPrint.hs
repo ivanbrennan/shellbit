@@ -1,5 +1,7 @@
 module NixShellBit.PPrint
-  ( askUrl
+  ( askSave
+  , askYesNo
+  , askUrl
   , fatalError
   , oopsNoProject
   , oopsNoVersion
@@ -8,10 +10,36 @@ module NixShellBit.PPrint
 import Data.Text   (Text)
 import System.Exit (exitFailure)
 import System.IO   (hFlush, stderr)
-import Text.PrettyPrint.ANSI.Leijen (Doc, bold, colon, hsep, text, vcat,
-                    hPutDoc, yellow, red, line, (<+>))
+import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon,
+                    hcat, hPutDoc, hsep, line, red, space, text, vcat,
+                    yellow, (<+>))
 
 import qualified Data.Text.IO as TIO
+
+
+askSave :: FilePath -> IO Text
+askSave path =
+  ask $ vcat
+      [ yellow (text "Config can be saved to") <+> text path
+      , text "Save config?" <+> yesNo <> space
+      ]
+
+
+askYesNo :: IO Text
+askYesNo =
+  ask $ hsep
+      [ text "Please answer y or n"
+      , yesNo <> space
+      ]
+
+
+yesNo :: Doc
+yesNo =
+  brackets $ hcat
+           [ bold (char 'Y')
+           , char '/'
+           , char 'n'
+           ]
 
 
 askUrl :: IO Text

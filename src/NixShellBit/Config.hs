@@ -4,17 +4,24 @@
 module NixShellBit.Config
   ( Config(..)
   , askConfig
+  , findConfig
   , readConfig
+  , saveConfig
   ) where
 
-import Control.Applicative       ((<|>))
-import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
-import Data.Text                 (Text)
-import Dhall                     (Generic, Interpret, auto, inputFile)
-import NixShellBit.PPrint        (askUrl)
-import System.Directory          (findFile)
-import System.Environment        (lookupEnv)
-import System.FilePath           ((</>), (<.>))
+import Control.Monad             (when)
+import Data.Text                 (Text, toLower)
+import Data.Text.Prettyprint.Doc (unAnnotate)
+import Dhall                     (Generic, Inject, Interpret,
+                                  auto, embed, inject, inputFile)
+import Dhall.Pretty              (prettyExpr)
+import NixShellBit.PPrint        (askSave, askUrl, askYesNo)
+import System.Directory          (XdgDirectory(XdgConfig),
+                                  createDirectoryIfMissing,
+                                  findFile, getXdgDirectory)
+import System.FilePath           (takeDirectory, takeFileName, (</>), (<.>))
+
+import qualified Data.ByteString.Char8 as C8
 
 
 newtype Config = Config
@@ -22,37 +29,59 @@ newtype Config = Config
   } deriving (Generic, Show)
 
 instance Interpret Config
+instance Inject Config
 
 
-readConfig :: IO (Maybe Config)
+findConfig :: IO (Maybe FilePath)
+findConfig =
+  do
+    path <- configPath
+    findFile [takeDirectory path] (takeFileName path)
+
+
+readConfig :: FilePath -> IO Config
 readConfig =
-    runMaybeT (findConfig >>= parse)
+  inputFile auto
+
+
+saveConfig :: Config -> IO ()
+saveConfig config =
+  do
+    path    <- configPath
+    confirm <- readReply =<< askSave path
+
+    when confirm (writeConfig path)
   where
-    findConfig :: MaybeT IO FilePath
-    findConfig =
-      do
-        dir <- xdgConfig <|> homeConfig
-        MaybeT (findFile [dir </> pkgName] (pkgName <.> ext))
+    readReply :: Text -> IO Bool
+    readReply reply =
+      case toLower reply of
+        x | x `elem` ["yes", "y", ""] -> pure True
+          | x `elem` ["no", "n"]      -> pure False
+          | otherwise                 -> askYesNo >>= readReply
 
-    xdgConfig :: MaybeT IO FilePath
-    xdgConfig =
-      MaybeT (lookupEnv "XDG_CONFIG_HOME")
+    writeConfig :: FilePath -> IO ()
+    writeConfig path =
+      createDirectoryIfMissing True (takeDirectory path) >>
+      C8.writeFile path (serialize config)
 
-    homeConfig :: MaybeT IO FilePath
-    homeConfig =
-      MaybeT (lookupEnv "HOME") >>=
-        MaybeT . pure . Just . (</> ".config")
-
-    pkgName :: String
-    pkgName = "nix-shell-bit"
-
-    ext :: String
-    ext = "dhall"
-
-    parse :: FilePath -> MaybeT IO Config
-    parse =
-      MaybeT . fmap Just . inputFile auto
+    serialize :: Config -> C8.ByteString
+    serialize =
+      C8.pack . show . unAnnotate . prettyExpr . embed inject
 
 
 askConfig :: IO Config
 askConfig = Config <$> askUrl
+
+
+configPath :: IO FilePath
+configPath =
+    (</> fileName) <$> directory
+  where
+    directory :: IO FilePath
+    directory = getXdgDirectory XdgConfig package
+
+    package :: String
+    package = "nix-shell-bit"
+
+    fileName :: FilePath
+    fileName = package <.> "dhall"
