@@ -3,12 +3,12 @@
 
 module NixShellBit.Config
   ( Config(..)
-  , askConfig
-  , findConfig
-  , readConfig
+  , configPath
+  , getConfig
   , saveConfig
   ) where
 
+import Control.Applicative       ((<|>))
 import Control.Monad             (when)
 import Data.Text                 (Text, toLower)
 import Data.Text.Prettyprint.Doc (unAnnotate)
@@ -19,9 +19,11 @@ import NixShellBit.PPrint        (askSave, askUrl, askYesNo)
 import System.Directory          (XdgDirectory(XdgConfig),
                                   createDirectoryIfMissing,
                                   findFile, getXdgDirectory)
+import System.Environment        (lookupEnv)
 import System.FilePath           (takeDirectory, takeFileName, (</>), (<.>))
 
 import qualified Data.ByteString.Char8 as C8
+import qualified Data.Text as T
 
 
 newtype Config = Config
@@ -32,16 +34,42 @@ instance Interpret Config
 instance Inject Config
 
 
-findConfig :: IO (Maybe FilePath)
-findConfig =
+configPath :: IO FilePath
+configPath =
+    (</> fileName) <$> directory
+  where
+    directory :: IO FilePath
+    directory = getXdgDirectory XdgConfig package
+
+    package :: String
+    package = "nix-shell-bit"
+
+    fileName :: FilePath
+    fileName = package <.> "dhall"
+
+
+getConfig :: IO Config
+getConfig =
   do
-    path <- configPath
-    findFile [takeDirectory path] (takeFileName path)
+    e <- fromEnv
+    f <- fromFile
+    maybe askConfig pure (e <|> f)
+  where
+    fromEnv :: IO (Maybe Config)
+    fromEnv =
+      do
+        url <- lookupEnv "NIX_SHELL_BIT_URL"
+        pure (Config . T.pack <$> url)
 
+    fromFile :: IO (Maybe Config)
+    fromFile =
+      do
+        path <- configPath
+        file <- findFile [takeDirectory path] (takeFileName path)
+        traverse (inputFile auto) file
 
-readConfig :: FilePath -> IO Config
-readConfig =
-  inputFile auto
+    askConfig :: IO Config
+    askConfig = Config <$> askUrl
 
 
 saveConfig :: Config -> IO ()
@@ -67,21 +95,3 @@ saveConfig config =
     serialize :: Config -> C8.ByteString
     serialize =
       C8.pack . show . unAnnotate . prettyExpr . embed inject
-
-
-askConfig :: IO Config
-askConfig = Config <$> askUrl
-
-
-configPath :: IO FilePath
-configPath =
-    (</> fileName) <$> directory
-  where
-    directory :: IO FilePath
-    directory = getXdgDirectory XdgConfig package
-
-    package :: String
-    package = "nix-shell-bit"
-
-    fileName :: FilePath
-    fileName = package <.> "dhall"
