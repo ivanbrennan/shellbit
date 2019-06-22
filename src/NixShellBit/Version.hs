@@ -12,8 +12,7 @@ import Data.Aeson                (FromJSON, decodeFileStrict, parseJSON,
                                   withObject, (.:))
 import Data.Maybe                (listToMaybe, maybe)
 import Distribution.Package      (packageVersion)
-import Distribution.PackageDescription.Parsec
-                                 (readGenericPackageDescription)
+import Distribution.PackageDescription.Parsec (readGenericPackageDescription)
 import Distribution.Pretty       (prettyShow)
 import Distribution.Verbosity    (silent)
 import NixShellBit.Git           (gitDiscoverRepo)

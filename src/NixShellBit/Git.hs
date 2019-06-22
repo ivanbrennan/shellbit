@@ -26,7 +26,7 @@ import Foreign            (Ptr, alloca, peek, sizeOf, allocaBytes,
                            fromBool, plusPtr)
 import Foreign.C.String   (CString, peekCString, withCString)
 import Foreign.C.Types    (CChar, CInt, CSize)
-import NixShellBit.PPrint (Doc, red, die, text)
+import NixShellBit.PPrint (fatalError)
 
 
 gitDiscoverRepo :: FilePath -> [String] -> IO (Maybe FilePath)
@@ -147,11 +147,7 @@ checkError exit =
 
 fatal :: String -> IO a
 fatal cmd =
-    die . doc =<< gitErrMsg
-  where
-    doc :: String -> Doc
-    doc msg = red $ text $
-      "nix-shell-bit: " ++ cmd ++ ": " ++ msg
+  fatalError cmd =<< gitErrMsg
 
 
 gitErrMsg :: IO String

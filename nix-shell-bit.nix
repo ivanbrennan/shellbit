@@ -1,6 +1,6 @@
 { mkDerivation, aeson, ansi-wl-pprint, base, bytestring, Cabal
-, directory, filemanip, filepath, hlibgit2, hspec
-, optparse-applicative, safe, stdenv, transformers
+, dhall, directory, filemanip, filepath, hlibgit2, hspec
+, optparse-applicative, safe, stdenv, text, transformers
 }:
 mkDerivation {
   pname = "nix-shell-bit";
@@ -9,8 +9,9 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    aeson ansi-wl-pprint base bytestring Cabal directory filemanip
-    filepath hlibgit2 optparse-applicative safe transformers
+    aeson ansi-wl-pprint base bytestring Cabal dhall directory
+    filemanip filepath hlibgit2 optparse-applicative safe text
+    transformers
   ];
   executableHaskellDepends = [ base ];
   testHaskellDepends = [ base hspec ];
