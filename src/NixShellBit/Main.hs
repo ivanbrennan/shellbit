@@ -2,13 +2,14 @@ module NixShellBit.Main
   ( nixShellBit
   ) where
 
-import Control.Monad       (unless)
+import Control.Monad       (unless, when)
 import Data.Maybe          (fromMaybe)
 import Data.Version        (showVersion)
 import NixShellBit.Config  (Config, configPath, getConfig, nixShellBitUrl,
                             saveConfig)
 import NixShellBit.Git     (gitListVersions)
-import NixShellBit.PPrint  (listItems, oopsNoProject, oopsNoVersion)
+import NixShellBit.PPrint  (listItems, oopsNoProject, oopsNoVersion,
+                            oopsNoVersions)
 import NixShellBit.Options (Options, Command(Exec, List), options,
                             optProject, optVersion, optCommand, optArgs)
 import NixShellBit.Project (Project, detectProject, unProject)
@@ -46,8 +47,11 @@ run opts =
     versions <- taggedVersions config project
 
     case command opts of
-      List -> listItems (unVersion version) versions
-      Exec -> print Exec
+      List -> do
+        when (null versions) (oopsNoVersions $ unProject project)
+        listItems (unVersion version) versions
+      Exec ->
+        print Exec
   where
     loadConfig :: IO Config
     loadConfig =

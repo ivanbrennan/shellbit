@@ -106,6 +106,14 @@ oopsNoVersion =
       ]
 
 
+oopsNoVersions :: String -> IO a
+oopsNoVersions name =
+  die $ (yellow . hsep)
+      [ text "No versions available for project"
+      , dquotes (text name)
+      ]
+
+
 fatalError :: String -> String -> IO a
 fatalError cmd err =
   die $ hsep
