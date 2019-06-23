@@ -10,7 +10,7 @@ module NixShellBit.Config
 
 import Control.Monad             (when)
 import Data.Foldable             (fold)
-import Data.Text                 (Text, pack, toLower)
+import Data.Text                 (Text, pack)
 import Data.Text.Prettyprint.Doc (unAnnotate)
 import Dhall                     (Generic, Inject, Interpret,
                                   auto, embed, inject, inputFile)
@@ -94,17 +94,10 @@ saveConfig :: Config -> IO ()
 saveConfig config =
   do
     path    <- configPath
-    confirm <- readReply =<< askSave path
+    confirm <- askSave path
 
     when confirm (writeConfig path)
   where
-    readReply :: Text -> IO Bool
-    readReply reply =
-      case toLower reply of
-        x | x `elem` ["yes", "y", ""] -> pure True
-          | x `elem` ["no", "n"]      -> pure False
-          | otherwise                 -> askYesNo >>= readReply
-
     writeConfig :: FilePath -> IO ()
     writeConfig path =
       createDirectoryIfMissing True (takeDirectory path) >>
