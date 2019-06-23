@@ -8,9 +8,9 @@ module NixShellBit.Config
   , saveConfig
   ) where
 
-import Control.Applicative       ((<|>))
 import Control.Monad             (when)
-import Data.Text                 (Text, toLower)
+import Data.Foldable             (fold)
+import Data.Text                 (Text, pack, toLower)
 import Data.Text.Prettyprint.Doc (unAnnotate)
 import Dhall                     (Generic, Inject, Interpret,
                                   auto, embed, inject, inputFile)
@@ -23,15 +23,32 @@ import System.Environment        (lookupEnv)
 import System.FilePath           (takeDirectory, takeFileName, (</>), (<.>))
 
 import qualified Data.ByteString.Char8 as C8
-import qualified Data.Text as T
 
 
-newtype Config = Config
-  { nixShellBitUrl :: Text
+type URL = Text
+type Branch = Text
+
+
+data Config = Config
+  { nixShellBitUrl    :: URL
+  , nixShellBitBranch :: Maybe Branch
   } deriving (Generic, Show)
 
-instance Interpret Config
-instance Inject Config
+
+data Attrs = Attrs
+  { aNixShellBitUrl    :: Maybe URL
+  , aNixShellBitBranch :: Maybe Branch
+  } deriving (Generic, Show)
+
+instance Interpret Attrs
+instance Inject Attrs
+
+instance Semigroup Attrs where
+  Attrs a b <> Attrs a' b' =
+    Attrs (a <> a') (b <> b')
+
+instance Monoid Attrs where
+  mempty = Attrs Nothing Nothing
 
 
 configPath :: IO FilePath
@@ -50,26 +67,27 @@ configPath =
 
 getConfig :: IO Config
 getConfig =
-  do
-    e <- fromEnv
-    f <- fromFile
-    maybe askConfig pure (e <|> f)
+    fold [fromEnv, fromFile] >>= toConfig
   where
-    fromEnv :: IO (Maybe Config)
+    fromEnv :: IO Attrs
     fromEnv =
-      do
-        url <- lookupEnv "NIX_SHELL_BIT_URL"
-        pure (Config . T.pack <$> url)
+      Attrs <$> envText "NIX_SHELL_BIT_URL"
+            <*> envText "NIX_SHELL_BIT_BRANCH"
 
-    fromFile :: IO (Maybe Config)
+    envText :: String -> IO (Maybe Text)
+    envText = (fmap . fmap) pack . lookupEnv
+
+    fromFile :: IO Attrs
     fromFile =
       do
         path <- configPath
         file <- findFile [takeDirectory path] (takeFileName path)
-        traverse (inputFile auto) file
+        maybe (pure mempty) (inputFile auto) file
 
-    askConfig :: IO Config
-    askConfig = Config <$> askUrl
+    toConfig :: Attrs -> IO Config
+    toConfig a =
+      Config <$> maybe askUrl pure (aNixShellBitUrl a)
+             <*> pure (aNixShellBitUrl a)
 
 
 saveConfig :: Config -> IO ()
@@ -90,8 +108,14 @@ saveConfig config =
     writeConfig :: FilePath -> IO ()
     writeConfig path =
       createDirectoryIfMissing True (takeDirectory path) >>
-      C8.writeFile path (serialize config)
+      C8.writeFile path (serialize attrs)
 
-    serialize :: Config -> C8.ByteString
+    attrs :: Attrs
+    attrs = Attrs
+      { aNixShellBitUrl    = Just (nixShellBitUrl config)
+      , aNixShellBitBranch = nixShellBitBranch config
+      }
+
+    serialize :: Attrs -> C8.ByteString
     serialize =
       C8.pack . show . unAnnotate . prettyExpr . embed inject

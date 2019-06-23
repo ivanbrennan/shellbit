@@ -9,8 +9,8 @@ import NixShellBit.Config  (Config, configPath, getConfig, nixShellBitUrl,
                             saveConfig)
 import NixShellBit.Git     (gitListVersions)
 import NixShellBit.PPrint  (listItems, oopsNoProject, oopsNoVersion)
-import NixShellBit.Options (Options, Command(Exec), options, optProject,
-                            optVersion, optCommand, optArgs)
+import NixShellBit.Options (Options, Command(Exec, List), options,
+                            optProject, optVersion, optCommand, optArgs)
 import NixShellBit.Project (Project, detectProject, unProject)
 import NixShellBit.Version (Version, detectVersion, unVersion)
 import Options.Applicative (briefDesc, execParser, info, infoOption,
@@ -41,11 +41,13 @@ run opts =
     version <- maybe oopsNoVersion pure =<< getVersion
     print version
 
-    print (command opts)
     print (optArgs opts)
 
     versions <- taggedVersions config project
-    listItems (unVersion version) versions
+
+    case command opts of
+      List -> listItems (unVersion version) versions
+      Exec -> print Exec
   where
     loadConfig :: IO Config
     loadConfig =

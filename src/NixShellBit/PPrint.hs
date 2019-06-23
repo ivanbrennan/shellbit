@@ -8,7 +8,8 @@ module NixShellBit.PPrint
   , oopsNoVersion
   ) where
 
-import Data.Text            (Text)
+import Data.Text            (Text, pack)
+import NixShellBit.Line     (readline)
 import System.Exit          (exitFailure)
 import System.IO            (hFlush, stderr)
 import System.Process.Typed (byteStringInput, proc, runProcess_, setStdin)
@@ -18,7 +19,6 @@ import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon,
                              yellow, (<+>))
 
 import qualified Data.ByteString.Lazy.Char8 as C8
-import qualified Data.Text.IO as TIO
 
 
 askSave :: FilePath -> IO Text
@@ -102,7 +102,7 @@ ask :: Doc -> IO Text
 ask doc =
   hPutDoc stderr doc >>
   hFlush stderr >>
-  TIO.getLine
+  (pack <$> readline)
 
 
 die :: Doc -> IO a
