@@ -42,25 +42,27 @@ detectVersion =
     dir <- maybe startPath parentDirectory
              <$> gitDiscoverRepo startPath ceilingDirs
 
-    fromCabalPkg dir
-      <|> fromNodePkg dir
-      <|> fromGenericPkg dir
+    runMaybeT
+      ( fromCabalPkg dir
+     <|> fromNodePkg dir
+     <|> fromGenericPkg dir
+      )
   where
     parentDirectory :: FilePath -> FilePath
     parentDirectory =
       takeDirectory . dropTrailingPathSeparator
 
-    fromCabalPkg :: FilePath -> IO (Maybe Version)
+    fromCabalPkg :: FilePath -> MaybeT IO Version
     fromCabalPkg =
-      runMaybeT . (findCabalFile >=> cabalPkgVersion)
+      findCabalFile >=> cabalPkgVersion
 
-    fromNodePkg :: FilePath -> IO (Maybe Version)
+    fromNodePkg :: FilePath -> MaybeT IO Version
     fromNodePkg =
-      runMaybeT . (findPkgJSONFile >=> nodePkgVersion)
+      findPkgJSONFile >=> nodePkgVersion
 
-    fromGenericPkg :: FilePath -> IO (Maybe Version)
+    fromGenericPkg :: FilePath -> MaybeT IO Version
     fromGenericPkg =
-      runMaybeT . (findVersionFile >=> genericPkgVersion)
+      findVersionFile >=> genericPkgVersion
 
     findCabalFile :: FilePath -> MaybeT IO FilePath
     findCabalFile =
