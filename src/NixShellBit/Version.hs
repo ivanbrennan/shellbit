@@ -24,9 +24,9 @@ import System.FilePath.Find      (FileType(RegularFile), depth, extension,
 import qualified Data.ByteString.Char8 as C8
 
 
-newtype Version
-  = Version String
-  deriving Show
+newtype Version = Version
+  { unVersion :: String
+  } deriving Show
 
 instance FromJSON Version where
   parseJSON = withObject "Object"

@@ -11,9 +11,9 @@ import System.Directory (getCurrentDirectory, getHomeDirectory)
 import System.FilePath  (takeBaseName)
 
 
-newtype Project
-  = Project String
-  deriving Show
+newtype Project = Project
+  { unProject :: String
+  } deriving Show
 
 
 detectProject :: IO (Maybe Project)
@@ -21,6 +21,7 @@ detectProject =
   do
     startPath   <- getCurrentDirectory
     ceilingDirs <- pure <$> getHomeDirectory
+
     runMaybeT $
       do
         repo   <- detectRepo startPath ceilingDirs

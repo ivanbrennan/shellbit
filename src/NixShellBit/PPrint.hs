@@ -3,17 +3,21 @@ module NixShellBit.PPrint
   , askYesNo
   , askUrl
   , fatalError
+  , listItems
   , oopsNoProject
   , oopsNoVersion
   ) where
 
-import Data.Text   (Text)
-import System.Exit (exitFailure)
-import System.IO   (hFlush, stderr)
+import Data.Text            (Text)
+import System.Exit          (exitFailure)
+import System.IO            (hFlush, stderr)
+import System.Process.Typed (byteStringInput, proc, runProcess_, setStdin)
 import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon,
-                    hcat, hPutDoc, hsep, line, red, space, text, vcat,
-                    yellow, (<+>))
+                             debold, displayS, hcat, hPutDoc, hsep, line,
+                             red, renderPretty, sep, space, text, vcat,
+                             yellow, (<+>))
 
+import qualified Data.ByteString.Lazy.Char8 as C8
 import qualified Data.Text.IO as TIO
 
 
@@ -77,6 +81,21 @@ fatalError cmd err =
       , text cmd <> colon
       , text err
       ]
+
+
+listItems :: String -> [String] -> IO ()
+listItems hiItem items =
+    runProcess_ $ setStdin (byteStringInput bs) (proc "column" [])
+  where
+    bs :: C8.ByteString
+    bs = C8.pack $ displayS (renderPretty 1.0 80 doc) ""
+
+    doc :: Doc
+    doc = sep (map toDoc items)
+
+    toDoc :: String -> Doc
+    toDoc s | s == hiItem = bold (text s)
+            | otherwise = debold (text s)
 
 
 ask :: Doc -> IO Text

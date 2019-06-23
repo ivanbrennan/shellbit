@@ -2,32 +2,38 @@
 
 module NixShellBit.Git
   ( gitDiscoverRepo
+  , gitListVersions
   , gitRemoteGetUrl
   , gitRemoteList
   ) where
 
-import Bindings.Libgit2   (C'git_strarray(C'git_strarray),
-                           C'git_remote,
-                           C'git_repository,
-                           c'GIT_OK,
-                           c'GIT_ENOTFOUND,
-                           c'giterr_last,
-                           c'git_error'message,
-                           c'git_repository_discover,
-                           c'git_repository_open, c'git_repository_free,
-                           c'git_remote_list,
-                           c'git_remote_url,
-                           c'git_remote_load, c'git_remote_free,
-                           withLibGitDo)
-import Control.Exception  (finally)
-import Control.Monad      (when, (<=<), (>=>))
-import Data.List          (intercalate)
-import Foreign            (Ptr, alloca, peek, sizeOf, allocaBytes,
-                           fromBool, plusPtr)
-import Foreign.C.String   (CString, peekCString, withCString)
-import Foreign.C.Types    (CChar, CInt, CSize)
-import NixShellBit.PPrint (fatalError)
-import System.FilePath    (searchPathSeparator)
+import Bindings.Libgit2     (C'git_strarray(C'git_strarray),
+                             C'git_remote,
+                             C'git_repository,
+                             c'GIT_OK,
+                             c'GIT_ENOTFOUND,
+                             c'giterr_last,
+                             c'git_error'message,
+                             c'git_repository_discover,
+                             c'git_repository_open, c'git_repository_free,
+                             c'git_remote_list,
+                             c'git_remote_url,
+                             c'git_remote_load, c'git_remote_free,
+                             withLibGitDo)
+import Control.Exception    (finally)
+import Control.Monad        (when, (<=<), (>=>))
+import Data.List            (intercalate)
+import Data.Maybe           (mapMaybe)
+import Foreign              (Ptr, alloca, peek, sizeOf, allocaBytes,
+                             fromBool, plusPtr)
+import Foreign.C.String     (CString, peekCString, withCString)
+import Foreign.C.Types      (CChar, CInt, CSize)
+import NixShellBit.PPrint   (fatalError)
+import System.FilePath      (searchPathSeparator)
+import System.Process.Typed (proc, readProcessStdout_)
+
+import qualified Data.ByteString.Char8      as C8
+import qualified Data.ByteString.Lazy.Char8 as L8
 
 
 gitDiscoverRepo :: FilePath -> [String] -> IO (Maybe FilePath)
@@ -76,6 +82,42 @@ gitRemoteList repoPath =
   where
     step :: Int
     step = sizeOf (undefined :: Ptr CString)
+
+
+{-| libgit2 v0.27 has a git_remote_create_detached()
+    function that could emulate this `git ls-remote`
+    call. If/when hlibgit2 gets updated, use that.
+
+    https://github.com/libgit2/libgit2/pull/4233
+-}
+gitListVersions
+  :: String
+  -> String
+  -> IO [String]
+gitListVersions url project =
+  do
+    out <- readProcessStdout_ (proc "git" ls_remote)
+    pure $ mapMaybe v (L8.lines out)
+  where
+    ls_remote :: [String]
+    ls_remote =
+      [ "ls-remote"
+      , "--tags"
+      , "--sort=version:refname"
+      , url
+      , project ++ "-*"
+      ]
+
+    v :: L8.ByteString -> Maybe String
+    v = fmap C8.unpack
+      . C8.stripPrefix prefix
+      . snd
+      . C8.breakSubstring prefix
+      . L8.toStrict
+
+    prefix :: C8.ByteString
+    prefix =
+      C8.pack ("refs/tags/" ++ project ++ "-")
 
 
 gitRemoteGetUrl
