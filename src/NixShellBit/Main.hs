@@ -6,8 +6,8 @@ import Control.Monad       (unless, when)
 import Data.Maybe          (fromMaybe)
 import Data.Version        (showVersion)
 import NixShellBit.Config  (Config, configPath, getConfig, nixShellBitUrl,
-                            saveConfig)
-import NixShellBit.Git     (gitListVersions)
+                            nixShellBitBranch, saveConfig)
+import NixShellBit.Git     (gitListVersions, gitArchiveUrl)
 import NixShellBit.PPrint  (listItems, oopsNoProject, oopsNoVersion,
                             oopsNoVersions)
 import NixShellBit.Options (Options, Command(Exec, List), options,
@@ -51,7 +51,11 @@ run opts =
         when (null versions) (oopsNoVersions $ unProject project)
         listItems (unVersion version) versions
       Exec ->
-        print Exec
+        let
+          ref = gitRef config project version
+          url = archiveUrl config ref
+        in
+          print url
   where
     loadConfig :: IO Config
     loadConfig =
@@ -74,7 +78,18 @@ run opts =
     taggedVersions :: Config -> Project -> IO [String]
     taggedVersions config project =
       let
-        url = T.unpack (nixShellBitUrl config)
+        url = (T.unpack . nixShellBitUrl) config
         pjt = unProject project
       in
         gitListVersions url pjt
+
+    gitRef :: Config -> Project -> Version -> String
+    gitRef config project version =
+      maybe
+        (unProject project ++ "-" ++ unVersion version)
+        T.unpack
+        (nixShellBitBranch config)
+
+    archiveUrl :: Config -> String -> Maybe T.Text
+    archiveUrl config ref =
+      gitArchiveUrl (nixShellBitUrl config) (T.pack ref)

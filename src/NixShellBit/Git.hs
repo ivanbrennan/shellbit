@@ -1,7 +1,9 @@
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module NixShellBit.Git
-  ( gitDiscoverRepo
+  ( gitArchiveUrl
+  , gitDiscoverRepo
   , gitListVersions
   , gitRemoteGetUrl
   , gitRemoteList
@@ -22,8 +24,11 @@ import Bindings.Libgit2     (C'git_strarray(C'git_strarray),
                              withLibGitDo)
 import Control.Exception    (finally)
 import Control.Monad        (when, (<=<), (>=>))
+import Data.Attoparsec.Text (Parser, char, choice, inClass, maybeResult,
+                             option, parse, string, takeWhile1)
 import Data.List            (intercalate)
 import Data.Maybe           (mapMaybe)
+import Data.Text            (Text)
 import Foreign              (Ptr, alloca, peek, sizeOf, allocaBytes,
                              fromBool, plusPtr)
 import Foreign.C.String     (CString, peekCString, withCString)
@@ -34,6 +39,69 @@ import System.Process.Typed (proc, readProcessStdout_)
 
 import qualified Data.ByteString.Char8      as C8
 import qualified Data.ByteString.Lazy.Char8 as L8
+import qualified Data.Text as T
+
+
+data GitURL = GitURL
+  { uHost :: Text
+  , uPath :: Text
+  } deriving Show
+
+
+gitArchiveUrl
+  :: Text
+  -> Text
+  -> Maybe Text
+gitArchiveUrl remoteUrl ref =
+  do
+    url <- maybeResult (parse parseGitUrl remoteUrl)
+    sub <- subPath (uHost url)
+    Just $ T.intercalate "/"
+      ["https://" <> uHost url, uPath url, sub]
+  where
+    parseGitUrl :: Parser GitURL
+    parseGitUrl =
+        choice [ssh, https]
+      where
+        ssh :: Parser GitURL
+        ssh =
+          do
+            _ <- string "git" >> char '@'
+            h <- host
+            _ <- char ':'
+            p <- path
+            _ <- ext
+            pure $ GitURL h p
+
+        https :: Parser GitURL
+        https =
+          do
+            _ <- string "https" >> string "://"
+            _ <- option "" (takeWhile1 (inClass "a-zA-Z0-9_-") >> string "@")
+            h <- host
+            _ <- char '/'
+            p <- path
+            _ <- ext
+            pure $ GitURL h p
+
+        host :: Parser Text
+        host = choice $ map string
+             [ "github.com"
+             , "gitlab.com"
+             , "bitbucket.org"
+             ]
+
+        path :: Parser Text
+        path = takeWhile1 (inClass "a-zA-Z0-9_/-")
+
+        ext :: Parser Text
+        ext = option "" (string ".git")
+
+    subPath :: Text -> Maybe Text
+    subPath "github.com"    = Just ("archive/" <> ref <> ".tar.gz")
+    subPath "gitlab.com"    = Just ("get/" <> ref <> ".tar.gz")
+    subPath "bitbucket.org" = Just ("repository/archive.tar.gz?ref=" <> ref)
+    subPath _               = Nothing
 
 
 gitDiscoverRepo :: FilePath -> [String] -> IO (Maybe FilePath)

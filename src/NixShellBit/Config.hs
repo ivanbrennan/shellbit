@@ -15,7 +15,7 @@ import Data.Text.Prettyprint.Doc (unAnnotate)
 import Dhall                     (Generic, Inject, Interpret,
                                   auto, embed, inject, inputFile)
 import Dhall.Pretty              (prettyExpr)
-import NixShellBit.PPrint        (askSave, askUrl, askYesNo)
+import NixShellBit.PPrint        (askSave, askUrl)
 import System.Directory          (XdgDirectory(XdgConfig),
                                   createDirectoryIfMissing,
                                   findFile, getXdgDirectory)
@@ -87,7 +87,7 @@ getConfig =
     toConfig :: Attrs -> IO Config
     toConfig a =
       Config <$> maybe askUrl pure (aNixShellBitUrl a)
-             <*> pure (aNixShellBitUrl a)
+             <*> pure (aNixShellBitBranch a)
 
 
 saveConfig :: Config -> IO ()
