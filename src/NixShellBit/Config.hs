@@ -15,6 +15,7 @@ import Data.Text.Prettyprint.Doc (unAnnotate)
 import Dhall                     (Generic, Inject, Interpret,
                                   auto, embed, inject, inputFile)
 import Dhall.Pretty              (prettyExpr)
+import NixShellBit.Git           (URL, Branch)
 import NixShellBit.PPrint        (askSave, askUrl)
 import System.Directory          (XdgDirectory(XdgConfig),
                                   createDirectoryIfMissing,
@@ -23,10 +24,6 @@ import System.Environment        (lookupEnv)
 import System.FilePath           (takeDirectory, takeFileName, (</>), (<.>))
 
 import qualified Data.ByteString.Char8 as C8
-
-
-type URL = Text
-type Branch = Text
 
 
 data Config = Config

@@ -1,5 +1,6 @@
 module NixShellBit.Options
-  ( Command(..)
+  ( Arg(..)
+  , Command(..)
   , Options(..)
   , options
   ) where
@@ -24,9 +25,9 @@ data Command
   deriving Show
 
 
-newtype Arg
-  = Arg String
-  deriving Show
+newtype Arg = Arg
+  { unArg :: String
+  } deriving Show
 
 
 options :: Parser Options

@@ -2,21 +2,22 @@ module NixShellBit.Main
   ( nixShellBit
   ) where
 
-import Control.Monad       (unless, when)
-import Data.Maybe          (fromMaybe)
-import Data.Version        (showVersion)
-import NixShellBit.Config  (Config, configPath, getConfig, nixShellBitUrl,
-                            nixShellBitBranch, saveConfig)
-import NixShellBit.Git     (gitListVersions, gitArchiveUrl)
-import NixShellBit.PPrint  (listItems, oopsNoProject, oopsNoVersion,
-                            oopsNoVersions)
-import NixShellBit.Options (Options, Command(Exec, List), options,
-                            optProject, optVersion, optCommand, optArgs)
-import NixShellBit.Project (Project, detectProject, unProject)
-import NixShellBit.Version (Version, detectVersion, unVersion)
-import Options.Applicative (briefDesc, execParser, info, infoOption,
-                            helper, hidden, short)
-import System.Directory    (doesFileExist)
+import Control.Monad        (unless, when)
+import Data.Maybe           (fromMaybe)
+import Data.Version         (showVersion)
+import NixShellBit.Config   (Config, configPath, getConfig, nixShellBitUrl,
+                             nixShellBitBranch, saveConfig)
+import NixShellBit.Git      (URL, Branch, gitListVersions)
+import NixShellBit.Nix      (derivation, executeNixShell)
+import NixShellBit.Options  (Options, Command(Exec, List), options, optProject,
+                             optVersion, optCommand, optArgs)
+import NixShellBit.PPrint   (listItems, oopsNoProject, oopsNoVersion,
+                             oopsNoVersions, oopsVersionUnavailable)
+import NixShellBit.Project  (Project, detectProject, unProject)
+import NixShellBit.Version  (Version(Version), detectVersion, unVersion)
+import Options.Applicative  (briefDesc, execParser, info, infoOption,
+                             helper, hidden, short)
+import System.Directory     (doesFileExist)
 
 import qualified Data.Text as T
 import qualified Paths_nix_shell_bit as Self
@@ -33,29 +34,19 @@ nixShellBit =
 run :: Options -> IO ()
 run opts =
   do
-    config <- loadConfig
-    print config
-
-    project <- maybe oopsNoProject pure =<< getProject
-    print project
-
-    version <- maybe oopsNoVersion pure =<< getVersion
-    print version
-
-    print (optArgs opts)
-
+    config   <- loadConfig
+    project  <- maybe oopsNoProject pure =<< getProject
+    version  <- maybe oopsNoVersion pure =<< getVersion
     versions <- taggedVersions config project
 
+    when (null versions) (oopsNoVersions $ unProject project)
+
     case command opts of
-      List -> do
-        when (null versions) (oopsNoVersions $ unProject project)
+      List ->
         listItems (unVersion version) versions
       Exec ->
-        let
-          ref = gitRef config project version
-          url = archiveUrl config ref
-        in
-          print url
+        requireVersion version versions >>
+          exec config project version
   where
     loadConfig :: IO Config
     loadConfig =
@@ -83,13 +74,19 @@ run opts =
       in
         gitListVersions url pjt
 
-    gitRef :: Config -> Project -> Version -> String
-    gitRef config project version =
-      maybe
-        (unProject project ++ "-" ++ unVersion version)
-        T.unpack
-        (nixShellBitBranch config)
+    exec :: Config -> Project -> Version -> IO ()
+    exec config project version =
+      do
+        drv <- derivation url branch project version
+        executeNixShell drv project (optArgs opts)
+      where
+        url :: URL
+        url = nixShellBitUrl config
 
-    archiveUrl :: Config -> String -> Maybe T.Text
-    archiveUrl config ref =
-      gitArchiveUrl (nixShellBitUrl config) (T.pack ref)
+        branch :: Maybe Branch
+        branch = nixShellBitBranch config
+
+    requireVersion :: Version -> [String] -> IO ()
+    requireVersion (Version v) versions
+      | v `elem` versions = pure ()
+      | otherwise         = oopsVersionUnavailable v versions

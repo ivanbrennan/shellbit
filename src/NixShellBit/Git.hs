@@ -2,7 +2,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module NixShellBit.Git
-  ( gitArchiveUrl
+  ( URL
+  , Branch
+  , gitArchiveUrl
+  , gitClone
   , gitDiscoverRepo
   , gitListVersions
   , gitRemoteGetUrl
@@ -35,7 +38,7 @@ import Foreign.C.String     (CString, peekCString, withCString)
 import Foreign.C.Types      (CChar, CInt, CSize)
 import NixShellBit.PPrint   (fatalError)
 import System.FilePath      (searchPathSeparator)
-import System.Process.Typed (proc, readProcessStdout_)
+import System.Process.Typed (proc, readProcessStdout_, runProcess_)
 
 import qualified Data.ByteString.Char8      as C8
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -46,6 +49,11 @@ data GitURL = GitURL
   { uHost :: Text
   , uPath :: Text
   } deriving Show
+
+
+-- TODO: clean this up
+type URL = Text
+type Branch = Text
 
 
 gitArchiveUrl
@@ -186,6 +194,26 @@ gitListVersions url project =
     prefix :: C8.ByteString
     prefix =
       C8.pack ("refs/tags/" ++ project ++ "-")
+
+
+{-| hlibgit2 has a c'git_clone binding but using it would mean
+    allocating and initializing some large structs, namely
+    C'git_clone_options and C'git_clone_options.
+
+    We only use this function in cases when an archive URL could
+    not be determined, such as when pointing at a local repository.
+-}
+gitClone
+  :: String
+  -> String
+  -> String
+  -> IO ()
+gitClone url localPath ref =
+    mapM_ (runProcess_ . proc "git") [clone, checkout]
+  where
+    clone = ["clone", "--quiet", "--template", "", url, localPath]
+
+    checkout = ["-C", localPath, "checkout", "--quiet", ref]
 
 
 gitRemoteGetUrl

@@ -1,25 +1,26 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module NixShellBit.PPrint
   ( askSave
-  , askYesNo
   , askUrl
+  , askYesNo
   , fatalError
   , listItems
   , oopsNoProject
   , oopsNoVersion
   , oopsNoVersions
+  , oopsVersionUnavailable
   ) where
 
 import Data.Text            (Text, pack, toLower)
 import NixShellBit.Line     (readline)
 import System.Exit          (exitFailure)
-import System.IO            (hFlush, stderr, stdout)
-import System.Process.Typed (byteStringInput, proc, runProcess_, setStdin)
-import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon,
-                             debold, displayS, dquotes, hcat, hPutDoc, hsep, line,
-                             red, renderPretty, sep, space, text, vcat,
-                             yellow, (<+>))
+import System.IO            (Handle, hFlush, stderr, stdout)
+import System.Process.Typed (byteStringInput, proc, readProcessStdout_, setStdin)
+import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon, debold,
+                             displayS, dquotes, hcat, hPutDoc, hsep, line, red,
+                             renderPretty, sep, space, text, vcat, yellow, (<+>))
 
 import qualified Data.ByteString.Lazy.Char8 as C8
 
@@ -74,11 +75,17 @@ yesNo =
 
 
 listItems :: String -> [String] -> IO ()
-listItems hiItem items =
-  do
-    runProcess_ $ setStdin (byteStringInput bs) (proc "column" [])
-    hFlush stdout
+listItems = listItems' stdout
+
+
+listItems' :: Handle -> String -> [String] -> IO ()
+listItems' hdl focusItem items =
+    columns >>= C8.hPut hdl >> hFlush hdl
   where
+    columns :: IO C8.ByteString
+    columns = readProcessStdout_ $
+      setStdin (byteStringInput bs) (proc "column" [])
+
     bs :: C8.ByteString
     bs = C8.pack $ displayS (renderPretty 1.0 80 doc) ""
 
@@ -86,7 +93,7 @@ listItems hiItem items =
     doc = sep (map toDoc items)
 
     toDoc :: String -> Doc
-    toDoc s | s == hiItem = bold (text s)
+    toDoc s | s == focusItem = bold (text s)
             | otherwise = debold (text s)
 
 
@@ -112,6 +119,18 @@ oopsNoVersions name =
       [ text "No versions available for project"
       , dquotes (text name)
       ]
+
+
+oopsVersionUnavailable :: String -> [String] -> IO a
+oopsVersionUnavailable v versions =
+  do
+    put $ vcat
+        [ yellow (text "Version" <+> text v <+> "not found")
+        , text "The following versions are available by --version=VERSION"
+        , mempty
+        ]
+    listItems' stderr v versions
+    exitFailure
 
 
 fatalError :: String -> String -> IO a
