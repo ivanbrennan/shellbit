@@ -4,22 +4,22 @@ module NixShellBit.Main
 
 import Control.Monad        (unless, when)
 import Data.Maybe           (fromMaybe)
+import Data.Text            (Text)
 import Data.Version         (showVersion)
 import NixShellBit.Config   (Config, configPath, getConfig, nixShellBitUrl,
                              nixShellBitBranch, saveConfig)
-import NixShellBit.Git      (URL, Branch, gitListVersions)
+import NixShellBit.Git      (gitListVersions)
 import NixShellBit.Nix      (derivation, executeNixShell)
 import NixShellBit.Options  (Options, Command(Exec, List), options, optProject,
                              optVersion, optCommand, optArgs)
 import NixShellBit.PPrint   (listItems, oopsNoProject, oopsNoVersion,
                              oopsNoVersions, oopsVersionUnavailable)
-import NixShellBit.Project  (Project, detectProject, unProject)
+import NixShellBit.Project  (Project(Project), detectProject, unProject)
 import NixShellBit.Version  (Version(Version), detectVersion, unVersion)
 import Options.Applicative  (briefDesc, execParser, info, infoOption,
                              helper, hidden, short)
 import System.Directory     (doesFileExist)
 
-import qualified Data.Text as T
 import qualified Paths_nix_shell_bit as Self
 
 
@@ -67,12 +67,8 @@ run opts =
     command = fromMaybe Exec . optCommand
 
     taggedVersions :: Config -> Project -> IO [String]
-    taggedVersions config project =
-      let
-        url = (T.unpack . nixShellBitUrl) config
-        pjt = unProject project
-      in
-        gitListVersions url pjt
+    taggedVersions config (Project project) =
+      gitListVersions (nixShellBitUrl config) project
 
     exec :: Config -> Project -> Version -> IO ()
     exec config project version =
@@ -80,13 +76,13 @@ run opts =
         drv <- derivation url branch project version
         executeNixShell drv project (optArgs opts)
       where
-        url :: URL
+        url :: Text
         url = nixShellBitUrl config
 
-        branch :: Maybe Branch
+        branch :: Maybe Text
         branch = nixShellBitBranch config
 
     requireVersion :: Version -> [String] -> IO ()
     requireVersion (Version v) versions
       | v `elem` versions = pure ()
-      | otherwise         = oopsVersionUnavailable v versions
+      | otherwise = oopsVersionUnavailable v versions

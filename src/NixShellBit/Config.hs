@@ -1,5 +1,4 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module NixShellBit.Config
   ( Config(..)
@@ -10,12 +9,11 @@ module NixShellBit.Config
 
 import Control.Monad             (when)
 import Data.Foldable             (fold)
-import Data.Text                 (Text, pack)
+import Data.Text                 (Text)
 import Data.Text.Prettyprint.Doc (unAnnotate)
 import Dhall                     (Generic, Inject, Interpret,
                                   auto, embed, inject, inputFile)
 import Dhall.Pretty              (prettyExpr)
-import NixShellBit.Git           (URL, Branch)
 import NixShellBit.PPrint        (askSave, askUrl)
 import System.Directory          (XdgDirectory(XdgConfig),
                                   createDirectoryIfMissing,
@@ -24,17 +22,18 @@ import System.Environment        (lookupEnv)
 import System.FilePath           (takeDirectory, takeFileName, (</>), (<.>))
 
 import qualified Data.ByteString.Char8 as C8
+import qualified Data.Text as T
 
 
 data Config = Config
-  { nixShellBitUrl    :: URL
-  , nixShellBitBranch :: Maybe Branch
+  { nixShellBitUrl    :: Text
+  , nixShellBitBranch :: Maybe Text
   } deriving (Generic, Show)
 
 
 data Attrs = Attrs
-  { aNixShellBitUrl    :: Maybe URL
-  , aNixShellBitBranch :: Maybe Branch
+  { aNixShellBitUrl    :: Maybe Text
+  , aNixShellBitBranch :: Maybe Text
   } deriving (Generic, Show)
 
 instance Interpret Attrs
@@ -71,9 +70,6 @@ getConfig =
       Attrs <$> envText "NIX_SHELL_BIT_URL"
             <*> envText "NIX_SHELL_BIT_BRANCH"
 
-    envText :: String -> IO (Maybe Text)
-    envText = (fmap . fmap) pack . lookupEnv
-
     fromFile :: IO Attrs
     fromFile =
       do
@@ -83,8 +79,11 @@ getConfig =
 
     toConfig :: Attrs -> IO Config
     toConfig a =
-      Config <$> maybe askUrl pure (aNixShellBitUrl a)
+      Config <$> maybe (T.pack <$> askUrl) pure (aNixShellBitUrl a)
              <*> pure (aNixShellBitBranch a)
+
+    envText :: String -> IO (Maybe Text)
+    envText = (fmap . fmap) T.pack . lookupEnv
 
 
 saveConfig :: Config -> IO ()

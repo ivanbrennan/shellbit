@@ -1,10 +1,8 @@
-{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module NixShellBit.PPrint
   ( askSave
   , askUrl
-  , askYesNo
   , fatalError
   , listItems
   , oopsNoProject
@@ -13,7 +11,7 @@ module NixShellBit.PPrint
   , oopsVersionUnavailable
   ) where
 
-import Data.Text            (Text, pack, toLower)
+import Data.Char            (toLower)
 import NixShellBit.Line     (readline)
 import System.Exit          (exitFailure)
 import System.IO            (Handle, hFlush, stderr, stdout)
@@ -25,13 +23,13 @@ import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon, debold,
 import qualified Data.ByteString.Lazy.Char8 as C8
 
 
-askUrl :: IO Text
+askUrl :: IO String
 askUrl =
   ask $ vcat
-      [ yellow (text "NIX_SHELL_BIT_URL not found in environment or config.")
-      , text "It should identify a git repo where we can find nix derivations"
-      , text "for your project shells. E.g. git@github.com:Foo/nix-shells.git"
-      , text "Please enter" <+> bold (text "NIX_SHELL_BIT_URL") <> text ": "
+      [ yellow "NIX_SHELL_BIT_URL not found in environment or config."
+      , "It should identify a git repo where we can find nix derivations"
+      , "for your project shells. E.g. git@github.com:Foo/nix-shells.git"
+      , "Please enter" <+> bold "NIX_SHELL_BIT_URL" <> colon <> space
       ]
 
 
@@ -42,36 +40,31 @@ askSave path =
     put line
     pure b
   where
-    askUser :: IO Text
+    askUser :: IO String
     askUser =
         ask $ vcat
-            [ yellow (text "Config can be saved to") <+> text path
-            , text "Save config?" <+> yesNo <> space
+            [ yellow "Config can be saved to" <+> text path
+            , "Save config?" <+> yesNo <> space
             ]
 
-    readReply :: Text -> IO Bool
+    askYesNo :: IO String
+    askYesNo =
+      ask' $ "Please answer y or n" <+> yesNo <> space
+
+    yesNo :: Doc
+    yesNo =
+      brackets $ hcat
+               [ bold (char 'Y')
+               , char '/'
+               , char 'n'
+               ]
+
+    readReply :: String -> IO Bool
     readReply reply =
-      case toLower reply of
+      case map toLower reply of
         x | x `elem` ["yes", "y", ""] -> pure True
           | x `elem` ["no", "n"]      -> pure False
           | otherwise                 -> askYesNo >>= readReply
-
-
-askYesNo :: IO Text
-askYesNo =
-  ask' $ hsep
-       [ text "Please answer y or n"
-       , yesNo <> space
-       ]
-
-
-yesNo :: Doc
-yesNo =
-  brackets $ hcat
-           [ bold (char 'Y')
-           , char '/'
-           , char 'n'
-           ]
 
 
 listItems :: String -> [String] -> IO ()
@@ -93,31 +86,31 @@ listItems' hdl focusItem items =
     doc = sep (map toDoc items)
 
     toDoc :: String -> Doc
-    toDoc s | s == focusItem = bold (text s)
-            | otherwise = debold (text s)
+    toDoc x | x == focusItem = bold (text x)
+            | otherwise = debold (text x)
 
 
 oopsNoProject :: IO a
 oopsNoProject =
   die $ vcat
-      [ yellow (text "Could not detect project")
-      , text "Try --project=PROJECT"
+      [ yellow "Could not detect project"
+      , "Try --project=PROJECT"
       ]
 
 
 oopsNoVersion :: IO a
 oopsNoVersion =
   die $ vcat
-      [ yellow (text "Could not detect version")
-      , text "Try --version=VERSION"
+      [ yellow "Could not detect version"
+      , "Try --version=VERSION"
       ]
 
 
 oopsNoVersions :: String -> IO a
-oopsNoVersions name =
+oopsNoVersions project =
   die $ (yellow . hsep)
-      [ text "No versions available for project"
-      , dquotes (text name)
+      [ "No versions available for project"
+      , (dquotes . text) project
       ]
 
 
@@ -125,8 +118,8 @@ oopsVersionUnavailable :: String -> [String] -> IO a
 oopsVersionUnavailable v versions =
   do
     put $ vcat
-        [ yellow (text "Version" <+> text v <+> "not found")
-        , text "The following versions are available by --version=VERSION"
+        [ yellow ("Version" <+> text v <+> "not found")
+        , "The following versions are available by --version=VERSION"
         , mempty
         ]
     listItems' stderr v versions
@@ -136,24 +129,24 @@ oopsVersionUnavailable v versions =
 fatalError :: String -> String -> IO a
 fatalError cmd err =
   die $ hsep
-      [ red (text "nix-shell-bit") <> colon
+      [ red "nix-shell-bit" <> colon
       , red (text cmd) <> colon
       , text err
       ]
 
 
-ask :: Doc -> IO Text
+ask :: Doc -> IO String
 ask doc =
   do
     put line
     ask' doc
 
 
-ask' :: Doc -> IO Text
+ask' :: Doc -> IO String
 ask' doc =
   do
     put doc
-    pack <$> readline
+    readline
 
 
 die :: Doc -> IO a

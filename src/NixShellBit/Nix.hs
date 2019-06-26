@@ -4,54 +4,51 @@ module NixShellBit.Nix
   ) where
 
 import Data.Maybe           (fromMaybe)
-import Data.Text            (Text, pack, unpack)
-import NixShellBit.Git      (Branch, URL, gitArchiveUrl, gitClone)
+import Data.Text            (Text)
+import NixShellBit.Git      (gitArchiveUrl, gitClone)
 import NixShellBit.Options  (Arg, unArg)
-import NixShellBit.Project  (Project, unProject)
-import NixShellBit.Version  (Version, unVersion)
+import NixShellBit.Project  (Project(Project))
+import NixShellBit.Version  (Version(Version))
 import System.IO.Temp       (createTempDirectory, getCanonicalTemporaryDirectory)
 import System.Posix.Process (executeFile)
 
+import qualified Data.Text as T
+
 
 derivation
-  :: URL
-  -> Maybe Branch
+  :: Text
+  -> Maybe Text
   -> Project
   -> Version
   -> IO String
-derivation url branch project version =
-    maybe tmpClone (pure . unpack) archive
+derivation url branch (Project project) (Version version) =
+    maybe tmpClone pure archive
   where
     ref :: Text
     ref = fromMaybe tag branch
 
     tag :: Text
-    tag = pack
-        $ unProject project ++ "-" ++ unVersion version
+    tag = T.pack (project ++ "-" ++ version)
 
-    archive :: Maybe Text
-    archive = gitArchiveUrl url ref
+    archive :: Maybe String
+    archive = T.unpack <$> gitArchiveUrl url ref
 
     tmpClone :: IO String
     tmpClone =
       do
         tmp <- getCanonicalTemporaryDirectory
-        dir <- createTempDirectory tmp name
-        gitClone (unpack url) dir (unpack ref)
+        dir <- createTempDirectory tmp ("nix-shell-bit-" ++ project)
+        gitClone url dir ref
         pure dir
-      where
-        name = "nix-shell-bit-" ++ unProject project
 
 
 executeNixShell :: String -> Project -> [Arg] -> IO ()
-executeNixShell drv project args =
-  let
-    search = True
-    env    = Nothing
-
-    args' = [ drv
-            , "--attr"
-            , unProject project
-            ] ++ map unArg args
-  in
-    executeFile "nix-shell" search args' env
+executeNixShell drv (Project project) args =
+    executeFile "nix-shell" search arguments env
+  where
+    search    = True
+    env       = Nothing
+    arguments = [ drv
+                , "--attr"
+                , project
+                ] ++ map unArg args

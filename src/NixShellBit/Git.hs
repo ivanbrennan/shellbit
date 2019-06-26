@@ -2,9 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module NixShellBit.Git
-  ( URL
-  , Branch
-  , gitArchiveUrl
+  ( gitArchiveUrl
   , gitClone
   , gitDiscoverRepo
   , gitListVersions
@@ -27,8 +25,8 @@ import Bindings.Libgit2     (C'git_strarray(C'git_strarray),
                              withLibGitDo)
 import Control.Exception    (finally)
 import Control.Monad        (when, (<=<), (>=>))
-import Data.Attoparsec.Text (Parser, char, choice, inClass, maybeResult,
-                             option, parse, string, takeWhile1)
+import Data.Attoparsec.Text (Parser, char, choice, inClass, maybeResult, option,
+                             parse, takeWhile1)
 import Data.List            (intercalate)
 import Data.Maybe           (mapMaybe)
 import Data.Text            (Text)
@@ -40,20 +38,9 @@ import NixShellBit.PPrint   (fatalError)
 import System.FilePath      (searchPathSeparator)
 import System.Process.Typed (proc, readProcessStdout_, runProcess_)
 
-import qualified Data.ByteString.Char8      as C8
-import qualified Data.ByteString.Lazy.Char8 as L8
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text as T
-
-
-data GitURL = GitURL
-  { uHost :: Text
-  , uPath :: Text
-  } deriving Show
-
-
--- TODO: clean this up
-type URL = Text
-type Branch = Text
 
 
 gitArchiveUrl
@@ -62,38 +49,37 @@ gitArchiveUrl
   -> Maybe Text
 gitArchiveUrl remoteUrl ref =
   do
-    url <- maybeResult (parse parseGitUrl remoteUrl)
-    sub <- subPath (uHost url)
-    Just $ T.intercalate "/"
-      ["https://" <> uHost url, uPath url, sub]
+    (host, path) <- maybeResult (parse components remoteUrl)
+    sub <- subPath host
+    Just $ T.intercalate "/" ["https://" <> host, path, sub]
   where
-    parseGitUrl :: Parser GitURL
-    parseGitUrl =
+    components :: Parser (Text, Text)
+    components =
         choice [ssh, https]
       where
-        ssh :: Parser GitURL
+        ssh :: Parser (Text, Text)
         ssh =
           do
-            _ <- string "git" >> char '@'
+            _ <- "git" >> char '@'
             h <- host
             _ <- char ':'
             p <- path
             _ <- ext
-            pure $ GitURL h p
+            pure (h, p)
 
-        https :: Parser GitURL
+        https :: Parser (Text, Text)
         https =
           do
-            _ <- string "https" >> string "://"
-            _ <- option "" (takeWhile1 (inClass "a-zA-Z0-9_-") >> string "@")
+            _ <- "https" >> "://"
+            _ <- option "" (takeWhile1 (inClass "a-zA-Z0-9_-") >> "@")
             h <- host
             _ <- char '/'
             p <- path
             _ <- ext
-            pure $ GitURL h p
+            pure (h, p)
 
         host :: Parser Text
-        host = choice $ map string
+        host = choice
              [ "github.com"
              , "gitlab.com"
              , "bitbucket.org"
@@ -103,7 +89,7 @@ gitArchiveUrl remoteUrl ref =
         path = takeWhile1 (inClass "a-zA-Z0-9_/-")
 
         ext :: Parser Text
-        ext = option "" (string ".git")
+        ext = option "" ".git"
 
     subPath :: Text -> Maybe Text
     subPath "github.com"    = Just ("archive/" <> ref <> ".tar.gz")
@@ -167,33 +153,32 @@ gitRemoteList repoPath =
     https://github.com/libgit2/libgit2/pull/4233
 -}
 gitListVersions
-  :: String
+  :: Text
   -> String
   -> IO [String]
-gitListVersions url project =
+gitListVersions url pattern =
   do
     out <- readProcessStdout_ (proc "git" ls_remote)
-    pure $ mapMaybe v (L8.lines out)
+    pure $ mapMaybe v (BL.lines out)
   where
     ls_remote :: [String]
     ls_remote =
       [ "ls-remote"
       , "--tags"
       , "--sort=version:refname"
-      , url
-      , project ++ "-*"
+      , T.unpack url
+      , pattern ++ "-*"
       ]
 
-    v :: L8.ByteString -> Maybe String
-    v = fmap C8.unpack
-      . C8.stripPrefix prefix
+    v :: BL.ByteString -> Maybe String
+    v = fmap BS.unpack
+      . BS.stripPrefix prefix
       . snd
-      . C8.breakSubstring prefix
-      . L8.toStrict
+      . BS.breakSubstring prefix
+      . BL.toStrict
 
-    prefix :: C8.ByteString
-    prefix =
-      C8.pack ("refs/tags/" ++ project ++ "-")
+    prefix :: BS.ByteString
+    prefix = "refs/tags/" <> BS.pack pattern <> "-"
 
 
 {-| hlibgit2 has a c'git_clone binding but using it would mean
@@ -204,16 +189,16 @@ gitListVersions url project =
     not be determined, such as when pointing at a local repository.
 -}
 gitClone
-  :: String
-  -> String
-  -> String
+  :: Text
+  -> FilePath
+  -> Text
   -> IO ()
 gitClone url localPath ref =
     mapM_ (runProcess_ . proc "git") [clone, checkout]
   where
-    clone = ["clone", "--quiet", "--template", "", url, localPath]
+    clone = ["clone", "--quiet", "--template", "", T.unpack url, localPath]
 
-    checkout = ["-C", localPath, "checkout", "--quiet", ref]
+    checkout = ["-C", localPath, "checkout", "--quiet", T.unpack ref]
 
 
 gitRemoteGetUrl
