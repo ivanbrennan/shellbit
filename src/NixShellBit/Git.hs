@@ -18,15 +18,15 @@ import Bindings.Libgit2     (C'git_strarray(C'git_strarray), C'git_remote,
                              c'git_remote_list, c'git_remote_load,
                              c'git_remote_url, withLibGitDo)
 import Control.Exception    (finally)
-import Control.Monad        (when, (<=<), (>=>))
+import Control.Monad        (when, (>=>))
 import Data.Attoparsec.Text (Parser, char, choice, inClass, maybeResult, option,
                              parse, takeWhile1)
 import Data.List            (intercalate)
 import Data.Maybe           (mapMaybe)
 import Data.Text            (Text)
-import Foreign              (Ptr, alloca, allocaBytes, fromBool, peek, plusPtr,
+import Foreign              (Ptr, alloca, allocaBytes, fromBool, peek, peekArray,
                              sizeOf)
-import Foreign.C.String     (CString, peekCString, withCString)
+import Foreign.C.String     (peekCString, withCString)
 import Foreign.C.Types      (CChar, CInt, CSize)
 import NixShellBit.PPrint   (fatalError)
 import System.FilePath      (searchPathSeparator)
@@ -124,20 +124,15 @@ gitDiscoverRepo startPath ceilingDirs =
 
 gitRemoteList :: FilePath -> IO [String]
 gitRemoteList repoPath =
-    withLibGitDo $
-      withRepo repoPath $ \repo ->
-      alloca            $ \out  ->
-        do
-          exit <- c'git_remote_list out repo
-          checkError exit "c'git_remote_list"
-          C'git_strarray cstrings count <- peek out
-
-          mapM
-            (peekCString <=< (peek . plusPtr cstrings) . (step *))
-            [0 .. fromIntegral (count - 1)]
-  where
-    step :: Int
-    step = sizeOf (undefined :: Ptr CString)
+  withLibGitDo $
+    withRepo repoPath $ \repo ->
+    alloca            $ \out  ->
+      do
+        exit <- c'git_remote_list out repo
+        checkError exit "c'git_remote_list"
+        C'git_strarray cstrings count <- peek out
+        peekArray (fromIntegral count) cstrings >>=
+          traverse peekCString
 
 
 {-| libgit2 v0.27 has a git_remote_create_detached()
