@@ -95,19 +95,19 @@ gitArchiveUrl remoteUrl ref =
 gitDiscoverRepo :: FilePath -> [String] -> IO (Maybe FilePath)
 gitDiscoverRepo startPath ceilingDirs =
     withLibGitDo $
-    withCString startPath  $ \start_path   ->
-      withCString ceiling' $ \ceiling_dirs ->
-        allocaBytes bytes  $ \path_out     ->
-          do
-            exit <- c'git_repository_discover path_out
-                                              path_size
-                                              start_path
-                                              across_fs
-                                              ceiling_dirs
-            case exit of
-              x | x == c'GIT_OK        -> Just <$> peekCString path_out
-                | x == c'GIT_ENOTFOUND -> pure Nothing
-                | otherwise            -> fatal "c'git_repository_discover"
+      withCString startPath $ \start_path   ->
+      withCString ceiling'  $ \ceiling_dirs ->
+      allocaBytes bytes     $ \path_out     ->
+        do
+          exit <- c'git_repository_discover path_out
+                                            path_size
+                                            start_path
+                                            across_fs
+                                            ceiling_dirs
+          case exit of
+            x | x == c'GIT_OK        -> Just <$> peekCString path_out
+              | x == c'GIT_ENOTFOUND -> pure Nothing
+              | otherwise            -> fatal "c'git_repository_discover"
   where
     ceiling' :: String
     ceiling' = intercalate [searchPathSeparator] ceilingDirs
@@ -125,8 +125,8 @@ gitDiscoverRepo startPath ceilingDirs =
 gitRemoteList :: FilePath -> IO [String]
 gitRemoteList repoPath =
     withLibGitDo $
-    withRepo repoPath $ \repo ->
-      alloca          $ \out  ->
+      withRepo repoPath $ \repo ->
+      alloca            $ \out  ->
         do
           exit <- c'git_remote_list out repo
           checkError exit "c'git_remote_list"
@@ -201,7 +201,7 @@ gitRemoteGetUrl
   -> IO String
 gitRemoteGetUrl repoPath name =
   withLibGitDo $
-  withRepo repoPath $ \repo ->
+    withRepo repoPath $ \repo ->
     withRemote repo name
       (c'git_remote_url >=> peekCString)
 
