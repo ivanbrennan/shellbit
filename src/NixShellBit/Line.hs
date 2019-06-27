@@ -4,8 +4,8 @@ module NixShellBit.Line
   ( readline
   ) where
 
-import System.Console.Haskeline (defaultSettings, getInputLine, runInputT,
-                                 noCompletion, setComplete)
+import System.Console.Haskeline (defaultSettings, getInputLine, noCompletion,
+                                 runInputT, setComplete)
 import System.Exit              (exitFailure)
 import System.IO.Error          (eofErrorType, isEOFError, mkIOError)
 import UnliftIO.Exception       (catchIO, throwIO)

@@ -10,19 +10,13 @@ module NixShellBit.Git
   , gitRemoteList
   ) where
 
-import Bindings.Libgit2     (C'git_strarray(C'git_strarray),
-                             C'git_remote,
-                             C'git_repository,
-                             c'GIT_OK,
-                             c'GIT_ENOTFOUND,
-                             c'giterr_last,
-                             c'git_error'message,
-                             c'git_repository_discover,
-                             c'git_repository_open, c'git_repository_free,
-                             c'git_remote_list,
-                             c'git_remote_url,
-                             c'git_remote_load, c'git_remote_free,
-                             withLibGitDo)
+import Bindings.Libgit2     (C'git_strarray(C'git_strarray), C'git_remote,
+                             C'git_repository, c'GIT_OK, c'GIT_ENOTFOUND,
+                             c'giterr_last, c'git_error'message,
+                             c'git_repository_discover, c'git_repository_free,
+                             c'git_repository_open, c'git_remote_free,
+                             c'git_remote_list, c'git_remote_load,
+                             c'git_remote_url, withLibGitDo)
 import Control.Exception    (finally)
 import Control.Monad        (when, (<=<), (>=>))
 import Data.Attoparsec.Text (Parser, char, choice, inClass, maybeResult, option,
@@ -30,8 +24,8 @@ import Data.Attoparsec.Text (Parser, char, choice, inClass, maybeResult, option,
 import Data.List            (intercalate)
 import Data.Maybe           (mapMaybe)
 import Data.Text            (Text)
-import Foreign              (Ptr, alloca, peek, sizeOf, allocaBytes,
-                             fromBool, plusPtr)
+import Foreign              (Ptr, alloca, allocaBytes, fromBool, peek, plusPtr,
+                             sizeOf)
 import Foreign.C.String     (CString, peekCString, withCString)
 import Foreign.C.Types      (CChar, CInt, CSize)
 import NixShellBit.PPrint   (fatalError)

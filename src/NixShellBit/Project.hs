@@ -5,7 +5,7 @@ module NixShellBit.Project
 
 import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
 import Data.List        (sortOn)
-import NixShellBit.Git  (gitDiscoverRepo, gitRemoteList, gitRemoteGetUrl)
+import NixShellBit.Git  (gitDiscoverRepo, gitRemoteGetUrl, gitRemoteList)
 import Safe             (headMay)
 import System.Directory (getCurrentDirectory, getHomeDirectory)
 import System.FilePath  (takeBaseName)

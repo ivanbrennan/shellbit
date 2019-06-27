@@ -7,19 +7,19 @@ module NixShellBit.Config
   , saveConfig
   ) where
 
-import Control.Monad             (when)
-import Data.Foldable             (fold)
-import Data.Text                 (Text)
+import Control.Monad      (when)
+import Data.Foldable      (fold)
+import Data.Text          (Text)
 import Data.Text.Prettyprint.Doc (unAnnotate)
-import Dhall                     (Generic, Inject, Interpret,
-                                  auto, embed, inject, inputFile)
-import Dhall.Pretty              (prettyExpr)
-import NixShellBit.PPrint        (askSave, askUrl)
-import System.Directory          (XdgDirectory(XdgConfig),
-                                  createDirectoryIfMissing,
-                                  findFile, getXdgDirectory)
-import System.Environment        (lookupEnv)
-import System.FilePath           (takeDirectory, takeFileName, (</>), (<.>))
+import Dhall              (Generic, Inject, Interpret,
+                           auto, embed, inject, inputFile)
+import Dhall.Pretty       (prettyExpr)
+import NixShellBit.PPrint (askSave, askUrl)
+import System.Directory   (XdgDirectory(XdgConfig),
+                           createDirectoryIfMissing,
+                           findFile, getXdgDirectory)
+import System.Environment (lookupEnv)
+import System.FilePath    (takeDirectory, takeFileName, (</>), (<.>))
 
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.Text as T
