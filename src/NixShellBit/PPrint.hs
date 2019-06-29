@@ -13,6 +13,7 @@ module NixShellBit.PPrint
 
 import Data.Char            (toLower)
 import NixShellBit.Line     (readline)
+import System.Environment   (getProgName)
 import System.Exit          (exitFailure)
 import System.IO            (Handle, hFlush, stderr, stdout)
 import System.Process.Typed (byteStringInput, proc, readProcessStdout_, setStdin)
@@ -128,11 +129,13 @@ oopsVersionUnavailable v versions =
 
 fatalError :: String -> String -> IO a
 fatalError cmd err =
-  die $ hsep
-      [ red "nix-shell-bit" <> colon
-      , red (text cmd) <> colon
-      , text err
-      ]
+  do
+    prog <- getProgName
+    die $ hsep
+        [ red (text prog) <> colon
+        , red (text cmd) <> colon
+        , text err
+        ]
 
 
 ask :: Doc -> IO String
