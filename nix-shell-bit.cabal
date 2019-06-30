@@ -15,6 +15,7 @@ library
       NixShellBit.Config
       NixShellBit.Git
       NixShellBit.Main
+      NixShellBit.Operation
       NixShellBit.Project
       NixShellBit.Version
   other-modules:
