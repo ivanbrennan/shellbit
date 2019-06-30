@@ -16,18 +16,18 @@ data Options = Options
   , optVersion :: Maybe Version
   , optCommand :: Maybe Command
   , optArgs    :: [Arg]
-  } deriving Show
+  } deriving (Eq, Show)
 
 
 data Command
   = Exec
   | List
-  deriving Show
+  deriving (Eq, Show)
 
 
 newtype Arg = Arg
   { unArg :: String
-  } deriving Show
+  } deriving (Eq, Show)
 
 
 options :: Parser Options

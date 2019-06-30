@@ -16,12 +16,12 @@ library
       NixShellBit.Git
       NixShellBit.Main
       NixShellBit.Operation
+      NixShellBit.Options
       NixShellBit.Project
       NixShellBit.Version
   other-modules:
       NixShellBit.Line
       NixShellBit.Nix
-      NixShellBit.Options
       NixShellBit.PPrint
       Paths_nix_shell_bit
   build-depends:
@@ -66,6 +66,7 @@ test-suite nix-shell-bit-test
   main-is: Spec.hs
   other-modules:
       NixShellBit.MainSpec
+      NixShellBit.OptionsSpec
       NixShellBit.Sandbox
   hs-source-dirs:
       test
@@ -79,6 +80,7 @@ test-suite nix-shell-bit-test
     , hspec
     , main-tester
     , nix-shell-bit
+    , optparse-applicative
     , regex-tdfa
     , temporary
     , text

@@ -13,7 +13,7 @@ import System.FilePath           (takeBaseName)
 
 newtype Project = Project
   { unProject :: String
-  } deriving Show
+  } deriving (Eq, Show)
 
 
 detectProject :: IO (Maybe Project)

@@ -3,7 +3,8 @@ module Main (main) where
 import NixShellBit.Sandbox (Sandbox, useSandbox, withSandbox)
 import Test.Hspec          (Spec, around_, hspec)
 
-import qualified NixShellBit.MainSpec
+import qualified NixShellBit.MainSpec as MainSpec
+import qualified NixShellBit.OptionsSpec as OptionsSpec
 
 
 main :: IO ()
@@ -14,4 +15,7 @@ main =
 
 
 spec :: Sandbox -> Spec
-spec = NixShellBit.MainSpec.spec
+spec sbx =
+  do
+    MainSpec.spec sbx
+    OptionsSpec.spec
