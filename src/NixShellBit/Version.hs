@@ -21,12 +21,12 @@ import System.FilePath           (dropTrailingPathSeparator, takeDirectory)
 import System.FilePath.Find      (FileType(RegularFile), depth, extension,
                                   fileName, fileType, find, (==?), (&&?))
 
-import qualified Data.ByteString.Char8 as C8
+import qualified Data.ByteString.Char8 as C
 
 
 newtype Version = Version
   { unVersion :: String
-  } deriving Show
+  } deriving (Eq, Show)
 
 instance FromJSON Version where
   parseJSON = withObject "Object"
@@ -101,5 +101,5 @@ detectVersion =
     genericPkgVersion :: FilePath -> MaybeT IO Version
     genericPkgVersion path =
       do
-        line <- MaybeT (listToMaybe . C8.lines <$> C8.readFile path)
-        pure $ Version (C8.unpack line)
+        line <- MaybeT (listToMaybe . C.lines <$> C.readFile path)
+        pure $ Version (C.unpack line)

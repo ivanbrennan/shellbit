@@ -4,11 +4,11 @@ module NixShellBit.Project
   ) where
 
 import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
-import Data.List        (sortOn)
-import NixShellBit.Git  (gitDiscoverRepo, gitRemoteGetUrl, gitRemoteList)
-import Safe             (headMay)
-import System.Directory (getCurrentDirectory, getHomeDirectory)
-import System.FilePath  (takeBaseName)
+import Data.List                 (sortOn)
+import NixShellBit.Git           (gitDiscoverRepo, gitRemoteGetUrl, gitRemoteList)
+import Safe                      (headMay)
+import System.Directory          (getCurrentDirectory, getHomeDirectory)
+import System.FilePath           (takeBaseName)
 
 
 newtype Project = Project
@@ -31,7 +31,7 @@ detectProject =
          . fmap (Just . Project . takeBaseName)
          $ gitRemoteGetUrl repo remote
   where
-    detectRepo :: FilePath -> [String] -> MaybeT IO FilePath
+    detectRepo :: FilePath -> [FilePath] -> MaybeT IO FilePath
     detectRepo startPath ceilingDirs =
       MaybeT (gitDiscoverRepo startPath ceilingDirs)
 

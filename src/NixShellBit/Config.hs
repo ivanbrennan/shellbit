@@ -2,26 +2,25 @@
 
 module NixShellBit.Config
   ( Config(..)
+  , configInit
   , configPath
-  , getConfig
-  , saveConfig
   ) where
 
-import Control.Monad      (when)
-import Data.Foldable      (fold)
-import Data.Text          (Text)
+import Control.Monad             (unless, when)
+import Data.Foldable             (fold)
+import Data.Text                 (Text)
 import Data.Text.Prettyprint.Doc (unAnnotate)
-import Dhall              (Generic, Inject, Interpret,
-                           auto, embed, inject, inputFile)
-import Dhall.Pretty       (prettyExpr)
-import NixShellBit.PPrint (askSave, askUrl)
-import System.Directory   (XdgDirectory(XdgConfig),
-                           createDirectoryIfMissing,
-                           findFile, getXdgDirectory)
-import System.Environment (lookupEnv)
-import System.FilePath    (takeDirectory, takeFileName, (</>), (<.>))
+import Dhall                     (Generic, Inject, Interpret, auto, embed,
+                                  inject, inputFile)
+import Dhall.Pretty              (prettyExpr)
+import NixShellBit.PPrint        (askSave, askUrl)
+import System.Directory          (XdgDirectory(XdgConfig),
+                                  createDirectoryIfMissing, doesFileExist,
+                                  findFile, getXdgDirectory)
+import System.Environment        (lookupEnv)
+import System.FilePath           (takeDirectory, takeFileName, (</>), (<.>))
 
-import qualified Data.ByteString.Char8 as C8
+import qualified Data.ByteString.Char8 as C
 import qualified Data.Text as T
 
 
@@ -47,23 +46,13 @@ instance Monoid Attrs where
   mempty = Attrs Nothing Nothing
 
 
-configPath :: IO FilePath
-configPath =
-    (</> fileName) <$> directory
-  where
-    directory :: IO FilePath
-    directory = getXdgDirectory XdgConfig package
-
-    package :: String
-    package = "nix-shell-bit"
-
-    fileName :: FilePath
-    fileName = package <.> "dhall"
-
-
-getConfig :: IO Config
-getConfig =
-    fold [fromEnv, fromFile] >>= toConfig
+configInit :: IO Config
+configInit =
+  do
+    config <- toConfig =<< fold [fromEnv, fromFile]
+    exists <- doesFileExist =<< configPath
+    unless exists (save config)
+    pure config
   where
     fromEnv :: IO Attrs
     fromEnv =
@@ -86,18 +75,32 @@ getConfig =
     envText = (fmap . fmap) T.pack . lookupEnv
 
 
-saveConfig :: Config -> IO ()
-saveConfig config =
+configPath :: IO FilePath
+configPath =
+    (</> fileName) <$> directory
+  where
+    directory :: IO FilePath
+    directory = getXdgDirectory XdgConfig package
+
+    package :: String
+    package = "nix-shell-bit"
+
+    fileName :: FilePath
+    fileName = "config" <.> "dhall"
+
+
+save :: Config -> IO ()
+save config =
   do
     path    <- configPath
     confirm <- askSave path
 
-    when confirm (writeConfig path)
+    when confirm (write path)
   where
-    writeConfig :: FilePath -> IO ()
-    writeConfig path =
+    write :: FilePath -> IO ()
+    write path =
       createDirectoryIfMissing True (takeDirectory path) >>
-      C8.writeFile path (serialize attrs)
+      C.writeFile path (serialize attrs)
 
     attrs :: Attrs
     attrs = Attrs
@@ -105,6 +108,6 @@ saveConfig config =
       , aNixShellBitBranch = nixShellBitBranch config
       }
 
-    serialize :: Attrs -> C8.ByteString
+    serialize :: Attrs -> C.ByteString
     serialize =
-      C8.pack . show . unAnnotate . prettyExpr . embed inject
+      C.pack . show . unAnnotate . prettyExpr . embed inject

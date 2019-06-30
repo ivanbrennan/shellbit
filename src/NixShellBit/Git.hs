@@ -5,18 +5,18 @@ module NixShellBit.Git
   ( gitArchiveUrl
   , gitClone
   , gitDiscoverRepo
-  , gitListVersions
+  , gitTaggedVersions
   , gitRemoteGetUrl
   , gitRemoteList
   ) where
 
 import Bindings.Libgit2     (C'git_strarray(C'git_strarray), C'git_remote,
-                             C'git_repository, c'GIT_OK, c'GIT_ENOTFOUND,
+                             C'git_repository, c'GIT_ENOTFOUND, c'GIT_OK,
                              c'giterr_last, c'git_error'message,
+                             c'git_remote_free, c'git_remote_list,
+                             c'git_remote_load, c'git_remote_url,
                              c'git_repository_discover, c'git_repository_free,
-                             c'git_repository_open, c'git_remote_free,
-                             c'git_remote_list, c'git_remote_load,
-                             c'git_remote_url, withLibGitDo)
+                             c'git_repository_open, withLibGitDo)
 import Control.Exception    (finally)
 import Control.Monad        (when, (>=>))
 import Data.Attoparsec.Text (Parser, char, choice, inClass, maybeResult, option,
@@ -32,8 +32,8 @@ import NixShellBit.PPrint   (fatalError)
 import System.FilePath      (searchPathSeparator)
 import System.Process.Typed (proc, readProcessStdout_, runProcess_)
 
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.ByteString.Lazy.Char8 as BL
+import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.Text as T
 
 
@@ -92,7 +92,10 @@ gitArchiveUrl remoteUrl ref =
     subPath _               = Nothing
 
 
-gitDiscoverRepo :: FilePath -> [String] -> IO (Maybe FilePath)
+gitDiscoverRepo
+  :: FilePath
+  -> [FilePath]
+  -> IO (Maybe FilePath)
 gitDiscoverRepo startPath ceilingDirs =
     withLibGitDo $
       withCString startPath $ \start_path   ->
@@ -141,14 +144,14 @@ gitRemoteList repoPath =
 
     https://github.com/libgit2/libgit2/pull/4233
 -}
-gitListVersions
+gitTaggedVersions
   :: Text
   -> String
   -> IO [String]
-gitListVersions url pattern =
+gitTaggedVersions url pattern =
   do
     out <- readProcessStdout_ (proc "git" ls_remote)
-    pure $ mapMaybe v (BL.lines out)
+    pure $ mapMaybe v (L.lines out)
   where
     ls_remote :: [String]
     ls_remote =
@@ -159,15 +162,15 @@ gitListVersions url pattern =
       , pattern ++ "-*"
       ]
 
-    v :: BL.ByteString -> Maybe String
-    v = fmap BS.unpack
-      . BS.stripPrefix prefix
+    v :: L.ByteString -> Maybe String
+    v = fmap C.unpack
+      . C.stripPrefix prefix
       . snd
-      . BS.breakSubstring prefix
-      . BL.toStrict
+      . C.breakSubstring prefix
+      . L.toStrict
 
-    prefix :: BS.ByteString
-    prefix = "refs/tags/" <> BS.pack pattern <> "-"
+    prefix :: C.ByteString
+    prefix = "refs/tags/" <> C.pack pattern <> "-"
 
 
 {-| hlibgit2 has a c'git_clone binding but using it would mean

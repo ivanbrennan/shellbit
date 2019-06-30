@@ -21,7 +21,7 @@ import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon, debold,
                              displayS, dquotes, hcat, hPutDoc, hsep, line, red,
                              renderPretty, sep, space, text, vcat, yellow, (<+>))
 
-import qualified Data.ByteString.Lazy.Char8 as C8
+import qualified Data.ByteString.Lazy.Char8 as C
 
 
 askUrl :: IO String
@@ -68,26 +68,26 @@ askSave path =
           | otherwise                 -> askYesNo >>= readReply
 
 
-listItems :: String -> [String] -> IO ()
+listItems :: [String] -> Maybe String -> IO ()
 listItems = listItems' stdout
 
 
-listItems' :: Handle -> String -> [String] -> IO ()
-listItems' hdl focusItem items =
-    columns >>= C8.hPut hdl >> hFlush hdl
+listItems' :: Handle -> [String] -> Maybe String -> IO ()
+listItems' hdl items focusItem =
+    columns >>= C.hPut hdl >> hFlush hdl
   where
-    columns :: IO C8.ByteString
+    columns :: IO C.ByteString
     columns = readProcessStdout_ $
       setStdin (byteStringInput bs) (proc "column" [])
 
-    bs :: C8.ByteString
-    bs = C8.pack $ displayS (renderPretty 1.0 80 doc) ""
+    bs :: C.ByteString
+    bs = C.pack $ displayS (renderPretty 1.0 80 doc) ""
 
     doc :: Doc
     doc = sep (map toDoc items)
 
     toDoc :: String -> Doc
-    toDoc x | x == focusItem = bold (text x)
+    toDoc x | Just x == focusItem = bold (text x)
             | otherwise = debold (text x)
 
 
@@ -115,15 +115,15 @@ oopsNoVersions project =
       ]
 
 
-oopsVersionUnavailable :: String -> [String] -> IO a
-oopsVersionUnavailable v versions =
+oopsVersionUnavailable :: [String] -> String -> IO a
+oopsVersionUnavailable versions version =
   do
     put $ vcat
-        [ yellow ("Version" <+> text v <+> "not found")
+        [ yellow ("Version" <+> text version <+> "not found")
         , "The following versions are available by --version=VERSION"
         , mempty
         ]
-    listItems' stderr v versions
+    listItems' stderr versions (Just version)
     exitFailure
 
 

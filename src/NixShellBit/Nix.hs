@@ -1,5 +1,8 @@
 module NixShellBit.Nix
-  ( derivation
+  ( NixArguments(..)
+  , NixDerivation(..)
+  , derivation
+  , arguments
   , executeNixShell
   ) where
 
@@ -15,14 +18,19 @@ import System.Posix.Process (executeFile)
 import qualified Data.Text as T
 
 
+newtype NixDerivation = NixDerivation String
+
+newtype NixArguments = NixArguments [String]
+
+
 derivation
   :: Text
   -> Maybe Text
   -> Project
   -> Version
-  -> IO String
+  -> IO NixDerivation
 derivation url branch (Project project) (Version version) =
-    maybe tmpClone pure archive
+    NixDerivation <$> maybe tmpClone pure archive
   where
     ref :: Text
     ref = fromMaybe tag branch
@@ -42,13 +50,24 @@ derivation url branch (Project project) (Version version) =
         pure dir
 
 
-executeNixShell :: String -> Project -> [Arg] -> IO ()
-executeNixShell drv (Project project) args =
-    executeFile "nix-shell" search arguments env
+arguments
+  :: NixDerivation
+  -> Project
+  -> [Arg]
+  -> NixArguments
+arguments (NixDerivation drv) (Project project) args =
+  NixArguments $ [ drv
+                 , "--attr"
+                 , project
+                 ] ++ map unArg args
+
+
+executeNixShell :: NixArguments -> IO ()
+executeNixShell (NixArguments args) =
+    executeFile "nix-shell" search args env
   where
-    search    = True
-    env       = Nothing
-    arguments = [ drv
-                , "--attr"
-                , project
-                ] ++ map unArg args
+    search :: Bool
+    search = True
+
+    env :: Maybe [(String, String)]
+    env = Nothing

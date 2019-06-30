@@ -12,16 +12,16 @@ extra-source-files:  README.md
 
 library
   exposed-modules:
-      NixShellBit.Main
-  other-modules:
       NixShellBit.Config
       NixShellBit.Git
+      NixShellBit.Main
+      NixShellBit.Project
+      NixShellBit.Version
+  other-modules:
       NixShellBit.Line
       NixShellBit.Nix
       NixShellBit.Options
       NixShellBit.PPrint
-      NixShellBit.Project
-      NixShellBit.Version
       Paths_nix_shell_bit
   build-depends:
       aeson                >= 1.4  && < 1.5
@@ -63,11 +63,23 @@ executable nix-shell-bit
 test-suite nix-shell-bit-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
+  other-modules:
+      NixShellBit.MainSpec
+      NixShellBit.Sandbox
   hs-source-dirs:
       test
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base
+    , bytestring
+    , Cabal
+    , directory
+    , filepath
     , hspec
+    , main-tester
     , nix-shell-bit
+    , regex-tdfa
+    , temporary
+    , text
+    , typed-process
   default-language: Haskell2010
