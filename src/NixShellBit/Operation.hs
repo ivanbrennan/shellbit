@@ -5,7 +5,7 @@ module NixShellBit.Operation
 
 import Control.Monad       (unless, when)
 import Data.Maybe          (fromMaybe)
-import NixShellBit.Config  (Config, configInit, nixShellBitUrl, nixShellBitBranch)
+import NixShellBit.Config  (Config, configInit, cNixShellBitUrl, cNixShellBitBranch)
 import NixShellBit.Git     (gitTaggedVersions)
 import NixShellBit.Nix     (NixArguments, arguments, derivation)
 import NixShellBit.Options (Options, Command(Exec, List), optArgs, optCommand,
@@ -53,7 +53,7 @@ operation opts =
 
     taggedVersions :: Config -> Project -> IO [Version]
     taggedVersions config project =
-      map Version <$> gitTaggedVersions (nixShellBitUrl config)
+      map Version <$> gitTaggedVersions (cNixShellBitUrl config)
                                         (unProject project)
 
     command :: Options -> Command
@@ -74,5 +74,5 @@ operation opts =
         drv <- derivation url branch project version
         pure $ arguments drv project (optArgs opts)
       where
-        url    = nixShellBitUrl config
-        branch = nixShellBitBranch config
+        url    = cNixShellBitUrl config
+        branch = cNixShellBitBranch config

@@ -17,12 +17,12 @@ library
       NixShellBit.Main
       NixShellBit.Operation
       NixShellBit.Options
+      NixShellBit.PPrint
       NixShellBit.Project
       NixShellBit.Version
   other-modules:
       NixShellBit.Line
       NixShellBit.Nix
-      NixShellBit.PPrint
       Paths_nix_shell_bit
   build-depends:
       aeson                >= 1.4  && < 1.5
@@ -65,9 +65,14 @@ test-suite nix-shell-bit-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      NixShellBit.ConfigSpec
+      NixShellBit.GitSpec
       NixShellBit.MainSpec
       NixShellBit.OptionsSpec
-      NixShellBit.Sandbox
+      NixShellBit.PPrintSpec
+      NixShellBit.Sbox
+      Test.Sandbox
+      Test.Utils
   hs-source-dirs:
       test
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N

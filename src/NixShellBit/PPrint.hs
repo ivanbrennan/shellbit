@@ -111,7 +111,7 @@ oopsNoVersions :: String -> IO a
 oopsNoVersions project =
   die $ (yellow . hsep)
       [ "No versions available for project"
-      , (dquotes . text) project
+      , dquotes (text project)
       ]
 
 

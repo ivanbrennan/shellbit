@@ -8,6 +8,7 @@ module NixShellBit.Git
   , gitTaggedVersions
   , gitRemoteGetUrl
   , gitRemoteList
+  , git_
   ) where
 
 import Bindings.Libgit2     (C'git_strarray(C'git_strarray), C'git_remote,
@@ -18,7 +19,7 @@ import Bindings.Libgit2     (C'git_strarray(C'git_strarray), C'git_remote,
                              c'git_repository_discover, c'git_repository_free,
                              c'git_repository_open, withLibGitDo)
 import Control.Exception    (finally)
-import Control.Monad        (when, (>=>))
+import Control.Monad        (void, when, (>=>))
 import Data.Attoparsec.Text (Parser, char, choice, inClass, maybeResult, option,
                              parse, takeWhile1)
 import Data.List            (intercalate)
@@ -30,7 +31,7 @@ import Foreign.C.String     (peekCString, withCString)
 import Foreign.C.Types      (CChar, CInt, CSize)
 import NixShellBit.PPrint   (fatalError)
 import System.FilePath      (searchPathSeparator)
-import System.Process.Typed (proc, readProcessStdout_, runProcess_)
+import System.Process.Typed (proc, readProcessStdout_, readProcess_)
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString.Lazy.Char8 as L
@@ -186,11 +187,15 @@ gitClone
   -> Text
   -> IO ()
 gitClone url localPath ref =
-    mapM_ (runProcess_ . proc "git") [clone, checkout]
+    mapM_ git_ [clone, checkout]
   where
     clone = ["clone", "--quiet", "--template", "", T.unpack url, localPath]
 
     checkout = ["-C", localPath, "checkout", "--quiet", T.unpack ref]
+
+
+git_ :: [String] -> IO ()
+git_ = void . readProcess_ . proc "git"
 
 
 gitRemoteGetUrl
