@@ -1,33 +1,34 @@
 module NixShellBit.MainSpec (spec) where
 
-import Data.List          (intercalate)
-import NixShellBit.Main   (nixShellBit)
-import NixShellBit.Sbox   (removeVersion, setVersions)
-import System.Directory   (removeDirectoryRecursive, removeFile)
-import System.FilePath    ((</>))
-import Test.Hspec         (Spec, before_, context,
-                           describe, it, shouldBe, shouldContain, shouldNotContain)
-import Test.Main          (ExitCode(ExitFailure, ExitSuccess),
-                           captureProcessResult, prExitCode, prStderr, prStdout,
-                           withArgs, withEnv)
-import Test.Utils         (captureStderr, shouldMatch, string, withInput)
+import Data.List        (intercalate)
+import NixShellBit.Main (nixShellBit)
+import NixShellBit.Sbox (initialVersion, localProject, remoteNixShells,
+                         removeVersion, setVersions, xdgConfigPath)
+import System.Directory (removeDirectoryRecursive, removeFile)
+import System.FilePath  ((</>))
+import Test.Hspec       (Spec, before_, context,
+                         describe, it, shouldBe, shouldContain, shouldNotContain)
+import Test.Main        (ExitCode(ExitFailure, ExitSuccess),
+                         captureProcessResult, prExitCode, prStderr, prStdout,
+                         withArgs, withEnv)
+import Test.Utils       (captureStderr, shouldMatch, string, withInput)
 
 
 spec :: FilePath -> Spec
 spec sand =
     describe "nix-shell-bit" $ do
       it "prompts for NIX_SHELL_BIT_URL if not configured" $ do
-        removeFile (sand </> "XDG_CONFIG_HOME/nix-shell-bit/config.dhall")
+        removeFile (xdgConfigPath sand </> "nix-shell-bit/config.dhall")
 
         e <- withArgs ["--list"]
-           . withInput [sand </> "remote/NIX_SHELLS", "yes"]
+           . withInput [remoteNixShells sand, "yes"]
            $ captureStderr nixShellBit
 
         string e `shouldContain` "Please enter NIX_SHELL_BIT_URL"
 
 
       context "when PROJECT cannot be detected" $
-        before_ (removeDirectoryRecursive (sand </> "local/PROJECT/.git")) $ do
+        before_ (removeDirectoryRecursive (localProject sand </> ".git")) $ do
 
         it "shows error" $ do
           result <- captureProcessResult nixShellBit
@@ -42,7 +43,7 @@ spec sand =
 
 
       context "when VERSION cannot be detected" $
-        before_ (removeFile (sand </> "local/PROJECT/VERSION")) $ do
+        before_ (removeFile (localProject sand </> "VERSION")) $ do
 
         it "shows error" $ do
           result <- captureProcessResult nixShellBit
@@ -101,7 +102,7 @@ spec sand =
           result <- captureProcessResult nixShellBit
 
           string (prStderr result) `shouldContain`
-            ("0.1.0" ++ " not found") -- initialVersion
+            (initialVersion ++ " not found")
 
 
         it "returns non-zero exit code" $ do
@@ -141,9 +142,9 @@ spec sand =
 
 
         it "does not warn about unavailable VERSION" $ do
-          removeVersion sand "0.1.0" -- initialVersion
+          removeVersion sand initialVersion
           result <- withArgs ["--list"]
                     (captureProcessResult nixShellBit)
 
           string (prStdout result) `shouldNotContain`
-            ("0.1.0" ++ " not found") -- initialVersion
+            (initialVersion ++ " not found")

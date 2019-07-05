@@ -4,5 +4,7 @@ cabal.project.local
 /dist-*/
 /dist/
 
+/.hspec-failures
+
 *.hi
 *.o

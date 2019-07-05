@@ -64,17 +64,17 @@ configInit =
     unless exists (save config)
     pure config
   where
-    fromEnv :: IO Attrs
-    fromEnv =
-      Attrs <$> envOption "NIX_SHELL_BIT_URL"
-            <*> envOption "NIX_SHELL_BIT_BRANCH"
-
     fromFile :: IO Attrs
     fromFile =
       do
         path <- configPath
         file <- findFile [takeDirectory path] (takeFileName path)
         maybe (pure mempty) load file
+
+    fromEnv :: IO Attrs
+    fromEnv =
+      Attrs <$> envOption "NIX_SHELL_BIT_URL"
+            <*> envOption "NIX_SHELL_BIT_BRANCH"
 
     envOption :: String -> IO (Option (Last Text))
     envOption =

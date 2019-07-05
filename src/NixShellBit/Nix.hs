@@ -18,9 +18,9 @@ import System.Posix.Process (executeFile)
 import qualified Data.Text as T
 
 
-newtype NixDerivation = NixDerivation String
+newtype NixDerivation = NixDerivation String deriving (Eq, Show)
 
-newtype NixArguments = NixArguments [String]
+newtype NixArguments = NixArguments [String] deriving (Eq, Show)
 
 
 derivation

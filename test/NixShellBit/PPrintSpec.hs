@@ -10,66 +10,66 @@ import Test.Utils         (capture, captureStdout, captureStderr, shouldMatch,
 
 spec :: Spec
 spec = do
-    describe "askUrl" $ do
-      let url :: String
-          url = "git@github.com:Foo/nix-shells.git"
+  describe "askUrl" $ do
+    let url :: String
+        url = "git@github.com:Foo/nix-shells.git"
 
-      it "prompts for NIX_SHELL_BIT_URL" $ do
-        e <- withInput [url] (captureStderr askUrl)
+    it "prompts for NIX_SHELL_BIT_URL" $ do
+      e <- withInput [url] (captureStderr askUrl)
 
-        string e `shouldContain` "Please enter NIX_SHELL_BIT_URL"
-
-
-      it "returns the provided input" $ do
-        u <- withInput [url] (silence askUrl)
-
-        u `shouldBe` url
+      string e `shouldContain` "Please enter NIX_SHELL_BIT_URL"
 
 
-    describe "askSave" $ do
-      let path :: FilePath
-          path = "path/to/file"
+    it "returns the provided input" $ do
+      u <- withInput [url] (silence askUrl)
 
-      it "asks for confirmation" $ do
-        e <- withInput ["yes"] (captureStderr (askSave path))
-
-        string e `shouldContain` "Save config?"
+      u `shouldBe` url
 
 
-      it "recognizes positive responses" $ do
-        ts <- traverse (`withInput` silence (askSave path))
-              [["yes"], ["y"], ["yES"]]
+  describe "askSave" $ do
+    let path :: FilePath
+        path = "path/to/file"
 
-        ts `shouldBe` [True, True, True]
+    it "asks for confirmation" $ do
+      e <- withInput ["yes"] (captureStderr (askSave path))
 
-
-      it "recognizes negative responses" $ do
-        fs <- traverse (`withInput` silence (askSave path))
-              [["no"], ["n"], ["NO"]]
-
-        fs `shouldBe` [False, False, False]
+      string e `shouldContain` "Save config?"
 
 
-      it "defaults empty response to True" $ do
-        t <- withInput [""] (silence (askSave path))
+    it "recognizes positive responses" $ do
+      ts <- traverse (`withInput` silence (askSave path))
+            [["yes"], ["y"], ["yES"]]
 
-        t `shouldBe` True
-
-
-      it "reprompts if response is invalid" $ do
-        (r, t) <- withInput ["1", "2", "yes"]
-                  (capture (askSave path))
-
-        t `shouldBe` True
-
-        string (prStderr r) `shouldMatch`
-          intercalate ".*" [ "Please answer y or n"
-                           , "Please answer y or n"
-                           ]
+      ts `shouldBe` [True, True, True]
 
 
-    describe "listItems" $
-      it "lists items on stdout" $ do
-        o <- captureStdout (listItems ["fnord", "zoo"] Nothing)
+    it "recognizes negative responses" $ do
+      fs <- traverse (`withInput` silence (askSave path))
+            [["no"], ["n"], ["NO"]]
 
-        string o `shouldMatch` "fnord.*zoo"
+      fs `shouldBe` [False, False, False]
+
+
+    it "defaults empty response to True" $ do
+      t <- withInput [""] (silence (askSave path))
+
+      t `shouldBe` True
+
+
+    it "reprompts if response is invalid" $ do
+      (r, t) <- withInput ["1", "2", "yes"]
+                (capture (askSave path))
+
+      t `shouldBe` True
+
+      string (prStderr r) `shouldMatch`
+        intercalate ".*" [ "Please answer y or n"
+                         , "Please answer y or n"
+                         ]
+
+
+  describe "listItems" $
+    it "lists items on stdout" $ do
+      o <- captureStdout (listItems ["fnord", "zoo"] Nothing)
+
+      string o `shouldMatch` "fnord.*zoo"

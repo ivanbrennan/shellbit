@@ -1,19 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module NixShellBit.Sbox
-  ( withSandbox
-  , addVersion
+  ( addVersion
+  , fixturesPath
+  , initialVersion
+  , localProject
+  , projectName
+  , remoteNixShells
+  , remoteProject
   , removeVersion
+  , setTags
   , setVersions
+  , withSandbox
+  , xdgConfigPath
   ) where
 
-import Data.Foldable      (traverse_)
-import NixShellBit.Git    (git_)
-import NixShellBit.Config (configInit)
-import System.Directory   (copyFile, createDirectory)
-import System.FilePath    ((</>))
-import Test.Main          (withEnv, withStdin)
-import Test.Utils         (silence)
+import Data.Foldable             (traverse_)
+import Distribution.Simple.Utils (copyDirectoryRecursive)
+import Distribution.Verbosity    (silent)
+import NixShellBit.Git           (git_)
+import NixShellBit.Config        (configInit)
+import System.Directory          (copyFile, createDirectory)
+import System.FilePath           ((</>))
+import Test.Main                 (withEnv, withStdin)
+import Test.Utils                (silence)
 
 import qualified Data.ByteString.Char8 as C
 import qualified Test.Sandbox as S
@@ -26,25 +36,19 @@ withSandbox =
     initialize :: FilePath -> IO ()
     initialize sand =
       let
-        local     = sand </> "local"
-        remote    = sand </> "remote"
-        xdgConfig = sand </> "XDG_CONFIG_HOME"
-
-        localProject  = local  </> "PROJECT"
-        remoteProject = remote </> "PROJECT"
-        remoteShells  = remote </> "NIX_SHELLS"
+        xdgConfig    = xdgConfigPath sand
+        localProj    = localProject sand
+        remoteProj   = remoteProject sand
+        remoteShells = remoteNixShells sand
       in
         withEnv
-          [ ("XDG_CONFIG_HOME", Just xdgConfig)
+          [ ("XDG_CONFIG_HOME",   Just xdgConfig)
           , ("NIX_SHELL_BIT_URL", Just remoteShells)
           ] $
           do
-            traverse_ createDirectory
-              [ local
-              , remote
-              , xdgConfig
-              , xdgConfig </> "git"
-              ]
+            createDirectory xdgConfig
+            createDirectory (xdgConfig </> "git")
+            copyDirectoryRecursive silent "test/fixtures" (fixturesPath sand)
 
             _ <- withStdin "yes" (silence configInit)
             C.writeFile (xdgConfig </> "git/config") ""
@@ -54,13 +58,13 @@ withSandbox =
             git_ ["config", "--global", "user.name", "nobody"]
 
             -- setup remote project
-            git_ ["init", "--quiet", "--template", "", remoteProject]
-            C.writeFile (remoteProject </> "VERSION") "0.1.0" -- initialVersion
-            git_ ["-C", remoteProject, "add", "VERSION"]
-            git_ ["-C", remoteProject, "commit", "--quiet", "--message", "x"]
+            git_ ["init", "--quiet", "--template", "", remoteProj]
+            C.writeFile (remoteProj </> "VERSION") (C.pack initialVersion)
+            git_ ["-C", remoteProj, "add", "VERSION"]
+            git_ ["-C", remoteProj, "commit", "--quiet", "--message", "x"]
 
             -- setup local project
-            git_ ["clone", "--quiet", "--template", "", remoteProject, localProject]
+            git_ ["clone", "--quiet", "--template", "", remoteProj, localProj]
 
             -- setup remote derivation
             git_ ["init", "--quiet", "--template", "", remoteShells]
@@ -68,21 +72,61 @@ withSandbox =
             traverse_ (git_ . (["-C", remoteShells] ++))
               [ ["add", "default.nix"]
               , ["commit", "--quiet", "--message", "x"]
-              , ["tag", "PROJECT-0.1.0"] -- initialVersion
+              , ["tag", projectTag initialVersion]
               ]
 
 
+localProject :: FilePath -> FilePath
+localProject sand = sand </> projectName ++ "-local"
+
+remoteProject :: FilePath -> FilePath
+remoteProject sand = sand </> projectName
+
+remoteNixShells :: FilePath -> FilePath
+remoteNixShells sand = sand </> "NIX_SHELLS"
+
+xdgConfigPath :: FilePath -> FilePath
+xdgConfigPath sand = sand </> "XDG_CONFIG_HOME"
+
+fixturesPath :: FilePath -> FilePath
+fixturesPath sand = sand </> "fixtures"
+
+projectName :: String
+projectName = "PROJECT"
+
+initialVersion :: String
+initialVersion = "0.1.0"
+
+projectTag :: String -> String
+projectTag v = projectName ++ "-" ++ v
+
+
 setVersions :: FilePath -> [String] -> IO ()
-setVersions sand vs =
-  removeVersion sand "0.1.0" >> -- initialVersion
-  traverse_ (addVersion sand) vs
+setVersions sand =
+  setTags sand . map projectTag
 
 
 removeVersion :: FilePath -> String -> IO ()
-removeVersion sand v =
-  git_ ["-C", sand </> "remote/NIX_SHELLS", "tag", "--delete", "PROJECT-" ++ v]
+removeVersion sand =
+  removeTag sand . projectTag
 
 
 addVersion :: FilePath -> String -> IO ()
 addVersion sand v =
-  git_ ["-C", sand </> "remote/NIX_SHELLS", "tag", "PROJECT-" ++ v] -- PROJECT (initialVersion similar)
+  git_ ["-C", remoteNixShells sand, "tag", projectTag v]
+
+
+setTags :: FilePath -> [String] -> IO ()
+setTags sand tags =
+  removeTag sand (projectTag initialVersion) >>
+  traverse_ (addTag sand) tags
+
+
+removeTag :: FilePath -> String -> IO ()
+removeTag sand tag =
+  git_ ["-C", remoteNixShells sand, "tag", "--delete", tag]
+
+
+addTag :: FilePath -> String -> IO ()
+addTag sand tag =
+  git_ ["-C", remoteNixShells sand, "tag", tag]

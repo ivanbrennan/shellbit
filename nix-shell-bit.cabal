@@ -15,6 +15,7 @@ library
       NixShellBit.Config
       NixShellBit.Git
       NixShellBit.Main
+      NixShellBit.Nix
       NixShellBit.Operation
       NixShellBit.Options
       NixShellBit.PPrint
@@ -22,7 +23,6 @@ library
       NixShellBit.Version
   other-modules:
       NixShellBit.Line
-      NixShellBit.Nix
       Paths_nix_shell_bit
   build-depends:
       aeson                >= 1.4  && < 1.5
@@ -68,9 +68,12 @@ test-suite nix-shell-bit-test
       NixShellBit.ConfigSpec
       NixShellBit.GitSpec
       NixShellBit.MainSpec
+      NixShellBit.NixSpec
       NixShellBit.OptionsSpec
       NixShellBit.PPrintSpec
+      NixShellBit.ProjectSpec
       NixShellBit.Sbox
+      NixShellBit.VersionSpec
       Test.Sandbox
       Test.Utils
   hs-source-dirs:

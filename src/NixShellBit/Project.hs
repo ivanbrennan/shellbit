@@ -1,5 +1,6 @@
 module NixShellBit.Project
   ( Project(..)
+  , currentProject
   , detectProject
   ) where
 
@@ -16,29 +17,32 @@ newtype Project = Project
   } deriving (Eq, Show)
 
 
-detectProject :: IO (Maybe Project)
-detectProject =
+currentProject :: IO (Maybe Project)
+currentProject =
   do
     startPath   <- getCurrentDirectory
     ceilingDirs <- pure <$> getHomeDirectory
+    repo        <- gitDiscoverRepo startPath ceilingDirs
 
-    runMaybeT $
-      do
-        repo   <- detectRepo startPath ceilingDirs
-        remote <- detectRemote repo
+    maybe (pure Nothing) detectProject repo
 
-        MaybeT
-         . fmap (Just . Project . takeBaseName)
-         $ gitRemoteGetUrl repo remote
+
+detectProject :: FilePath -> IO (Maybe Project)
+detectProject repo =
+    runMaybeT (detectRemote >>= getUrl >>= baseName)
   where
-    detectRepo :: FilePath -> [FilePath] -> MaybeT IO FilePath
-    detectRepo startPath ceilingDirs =
-      MaybeT (gitDiscoverRepo startPath ceilingDirs)
-
-    detectRemote :: FilePath -> MaybeT IO String
-    detectRemote repo =
+    detectRemote :: MaybeT IO String
+    detectRemote =
       MaybeT (prefer "origin" <$> gitRemoteList repo)
 
     prefer :: String -> [String] -> Maybe String
     prefer fav =
       headMay . sortOn (/= fav)
+
+    getUrl :: String -> MaybeT IO String
+    getUrl remote =
+      MaybeT (Just <$> gitRemoteGetUrl repo remote)
+
+    baseName :: String -> MaybeT IO Project
+    baseName =
+      MaybeT . pure . Just . Project . takeBaseName

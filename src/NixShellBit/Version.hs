@@ -2,6 +2,7 @@
 
 module NixShellBit.Version
   ( Version(..)
+  , currentVersion
   , detectVersion
   ) where
 
@@ -33,25 +34,28 @@ instance FromJSON Version where
     (\o -> Version <$> o .: "version")
 
 
-detectVersion :: IO (Maybe Version)
-detectVersion =
+currentVersion :: IO (Maybe Version)
+currentVersion =
   do
     startPath   <- getCurrentDirectory
     ceilingDirs <- pure <$> getHomeDirectory
+    gitDir      <- gitDiscoverRepo startPath ceilingDirs
 
-    dir <- maybe startPath parentDirectory
-             <$> gitDiscoverRepo startPath ceilingDirs
-
-    runMaybeT
-      ( fromCabalPkg dir
-     <|> fromNodePkg dir
-     <|> fromGenericPkg dir
-      )
+    detectVersion (maybe startPath parent gitDir)
   where
-    parentDirectory :: FilePath -> FilePath
-    parentDirectory =
+    parent :: FilePath -> FilePath
+    parent =
       takeDirectory . dropTrailingPathSeparator
 
+
+detectVersion :: FilePath -> IO (Maybe Version)
+detectVersion directory =
+    runMaybeT
+      ( fromCabalPkg directory
+     <|> fromNodePkg directory
+     <|> fromGenericPkg directory
+      )
+  where
     fromCabalPkg :: FilePath -> MaybeT IO Version
     fromCabalPkg =
       findCabalFile >=> cabalPkgVersion

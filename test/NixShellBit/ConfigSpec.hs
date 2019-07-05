@@ -1,8 +1,9 @@
 module NixShellBit.ConfigSpec (spec) where
 
 import NixShellBit.Config (configInit, configPath, cNixShellBitUrl)
+import NixShellBit.Sbox   (remoteNixShells, xdgConfigPath)
 import System.Directory   (doesFileExist, removeFile)
-import System.FilePath    (takeDirectory, (</>))
+import System.FilePath    ((</>))
 import Test.Hspec         (Spec, before_, context, describe, it, shouldBe,
                            shouldContain, shouldNotContain)
 import Test.Main          (prStderr, withEnv)
@@ -14,59 +15,61 @@ import qualified Data.Text as T
 spec :: FilePath -> Spec
 spec sand = do
   describe "configInit" $ do
-    let url  = sand </> "remote/NIX_SHELLS"
-        url2 = "git@github.com:U/2.git"
-
     it "uses configured NIX_SHELL_BIT_URL" $ do
       c <- configInit
 
-      cNixShellBitUrl c `shouldBe` T.pack url
+      cNixShellBitUrl c `shouldBe` T.pack (remoteNixShells sand)
 
 
-    -- it "can be overridden by environment variable" $ do
-    --   withEnv [("NIX_SHELL_BIT_URL", Just url2)] $ do
-    --     c <- silence configInit
+    it "can be overridden by environment variable" $ do
+      let override = "git@github.com:override/ooo.git"
 
-    --     cNixShellBitUrl c `shouldBe` T.pack url2
+      withEnv [("NIX_SHELL_BIT_URL", Just override)] $ do
+        c <- silence configInit
 
-
-    context "when config file does not exist" $
-      before_ (removeFile (sand </> "XDG_CONFIG_HOME/nix-shell-bit/config.dhall")) $ do
-
-      it "prompts for NIX_SHELL_BIT_URL if not set in environment" $ do
-        (r, c) <- withInput [url2, "yes"] (capture configInit)
-
-        string (prStderr r) `shouldContain`
-          "Please enter NIX_SHELL_BIT_URL"
-
-        cNixShellBitUrl c `shouldBe` T.pack url2
+        cNixShellBitUrl c `shouldBe` T.pack override
 
 
-      it "uses environment variable if set" $ do
-        (r, c) <- withEnv [("NIX_SHELL_BIT_URL", Just url2)]
-                  ( withInput ["yes"] (capture configInit) )
+    context "when config file does not exist" $ do
+      let file = xdgConfigPath sand </> "nix-shell-bit/config.dhall"
+          url  = "git@github.com:U/2.git"
 
-        string (prStderr r) `shouldNotContain` "Please enter"
+      before_ (removeFile file) $ do
 
-        cNixShellBitUrl c `shouldBe` T.pack url2
+        it "prompts for NIX_SHELL_BIT_URL if not set in environment" $ do
+          (r, c) <- withInput [url, "yes"] (capture configInit)
+
+          string (prStderr r) `shouldContain`
+            "Please enter NIX_SHELL_BIT_URL"
+
+          cNixShellBitUrl c `shouldBe` T.pack url
 
 
-      it "saves config if user confirms" $ do
-        _ <- withInput [url2, "yes"] (silence configInit)
-        c <- readFile =<< configPath
+        it "uses environment variable if set" $ do
+          (r, c) <- withEnv [("NIX_SHELL_BIT_URL", Just url)]
+                  $ withInput ["yes"] (capture configInit)
 
-        c `shouldContain` url2
+          string (prStderr r) `shouldNotContain` "Please enter"
+
+          cNixShellBitUrl c `shouldBe` T.pack url
 
 
-      it "skips saving if user declines" $ do
-        _ <- withInput [url2, "no"] (silence configInit)
-        f <- doesFileExist =<< configPath
+        it "saves config if user confirms" $ do
+          _ <- withInput [url, "yes"] (silence configInit)
+          c <- readFile =<< configPath
 
-        f `shouldBe` False
+          c `shouldContain` url
+
+
+        it "skips saving if user declines" $ do
+          _ <- withInput [url, "no"] (silence configInit)
+          f <- doesFileExist =<< configPath
+
+          f `shouldBe` False
 
 
   describe "configPath" $
     it "uses XDG_CONFIG_HOME" $
       withEnv [("XDG_CONFIG_HOME", Just "/foo")] $ do
-        d <- takeDirectory <$> configPath
-        d `shouldBe` "/foo/nix-shell-bit"
+        d <- configPath
+        d `shouldBe` "/foo/nix-shell-bit/config.dhall"

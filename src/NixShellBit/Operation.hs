@@ -12,8 +12,8 @@ import NixShellBit.Options (Options, Command(Exec, List), optArgs, optCommand,
                             optProject, optVersion)
 import NixShellBit.PPrint  (oopsNoProject, oopsNoVersion, oopsNoVersions,
                             oopsVersionUnavailable)
-import NixShellBit.Project (Project, detectProject, unProject)
-import NixShellBit.Version (Version(Version), detectVersion, unVersion)
+import NixShellBit.Project (Project, currentProject, unProject)
+import NixShellBit.Version (Version(Version), currentVersion, unVersion)
 
 
 data Operation
@@ -45,11 +45,11 @@ operation opts =
   where
     getProject :: IO (Maybe Project)
     getProject =
-      maybe detectProject (pure . Just) (optProject opts)
+      maybe currentProject (pure . Just) (optProject opts)
 
     getVersion :: IO (Maybe Version)
     getVersion =
-      maybe detectVersion (pure . Just) (optVersion opts)
+      maybe currentVersion (pure . Just) (optVersion opts)
 
     taggedVersions :: Config -> Project -> IO [Version]
     taggedVersions config project =
