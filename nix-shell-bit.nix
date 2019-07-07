@@ -18,8 +18,9 @@ mkDerivation {
   ];
   executableHaskellDepends = [ base ];
   testHaskellDepends = [
-    base bytestring Cabal directory filepath hspec main-tester
-    regex-tdfa temporary text typed-process
+    base bytestring Cabal directory filemanip filepath hspec
+    main-tester optparse-applicative regex-tdfa temporary text
+    typed-process unliftio
   ];
   license = stdenv.lib.licenses.bsd3;
 }

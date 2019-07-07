@@ -4,6 +4,7 @@ module NixShellBit.Nix
   , derivation
   , arguments
   , executeNixShell
+  , tmpClonePrefix
   ) where
 
 import Data.Maybe           (fromMaybe)
@@ -45,7 +46,7 @@ derivation url branch (Project project) (Version version) =
     tmpClone =
       do
         tmp <- getCanonicalTemporaryDirectory
-        dir <- createTempDirectory tmp ("nix-shell-bit-" ++ project)
+        dir <- createTempDirectory tmp (tmpClonePrefix ++ "-" ++ project)
         gitClone url dir ref
         pure dir
 
@@ -71,3 +72,7 @@ executeNixShell (NixArguments args) =
 
     env :: Maybe [(String, String)]
     env = Nothing
+
+
+tmpClonePrefix :: String
+tmpClonePrefix = "nix-shell-bit-tmp-clone"

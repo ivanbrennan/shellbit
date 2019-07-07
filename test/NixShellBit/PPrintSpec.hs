@@ -3,9 +3,8 @@ module NixShellBit.PPrintSpec (spec) where
 import Data.List          (intercalate)
 import NixShellBit.PPrint (askSave, askUrl, listItems)
 import Test.Hspec         (Spec, describe, it, shouldBe, shouldContain)
-import Test.Main          (prStderr)
-import Test.Utils         (capture, captureStdout, captureStderr, shouldMatch,
-                           silence, string, withInput)
+import Test.Utils         (capture, captureStdout, captureStderr, prStderr,
+                           shouldMatch, silence, string, withInput)
 
 
 spec :: Spec

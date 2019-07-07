@@ -6,8 +6,7 @@ import System.Directory   (doesFileExist, removeFile)
 import System.FilePath    ((</>))
 import Test.Hspec         (Spec, before_, context, describe, it, shouldBe,
                            shouldContain, shouldNotContain)
-import Test.Main          (prStderr, withEnv)
-import Test.Utils         (silence, withInput, capture, string)
+import Test.Utils         (capture, prStderr, silence, string, withEnv, withInput)
 
 import qualified Data.Text as T
 

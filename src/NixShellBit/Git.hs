@@ -2,7 +2,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module NixShellBit.Git
-  ( gitArchiveUrl
+  ( GitError(..)
+  , gitArchiveUrl
   , gitClone
   , gitDiscoverRepo
   , gitTaggedVersions
@@ -29,13 +30,23 @@ import Foreign              (Ptr, alloca, allocaBytes, fromBool, peek, peekArray
                              sizeOf)
 import Foreign.C.String     (peekCString, withCString)
 import Foreign.C.Types      (CChar, CInt, CSize)
-import NixShellBit.PPrint   (fatalError)
 import System.FilePath      (searchPathSeparator)
 import System.Process.Typed (proc, readProcessStdout_, readProcess_)
+import UnliftIO.Exception   (Exception, Typeable, throwIO)
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.Text as T
+
+
+type CmdName = String
+type ErrMsg = String
+
+data GitError
+  = GitError CmdName ErrMsg
+  deriving (Eq, Show, Typeable)
+
+instance Exception GitError
 
 
 gitArchiveUrl
@@ -111,7 +122,7 @@ gitDiscoverRepo startPath ceilingDirs =
           case exit of
             x | x == c'GIT_OK        -> Just <$> peekCString path_out
               | x == c'GIT_ENOTFOUND -> pure Nothing
-              | otherwise            -> fatal "c'git_repository_discover"
+              | otherwise            -> throwGit "c'git_repository_discover"
   where
     ceiling' :: String
     ceiling' = intercalate [searchPathSeparator] ceilingDirs
@@ -263,12 +274,12 @@ bracketResource initName initCmd free f =
 
 checkError :: CInt -> String -> IO ()
 checkError exit =
-  when (exit /= 0) . fatal
+  when (exit /= 0) . throwGit
 
 
-fatal :: String -> IO a
-fatal cmd =
-  fatalError cmd =<< gitErrMsg
+throwGit :: String -> IO a
+throwGit cmd =
+  throwIO . GitError cmd =<< gitErrMsg
 
 
 gitErrMsg :: IO String

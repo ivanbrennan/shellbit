@@ -5,10 +5,9 @@ import Distribution.Verbosity    (silent)
 import NixShellBit.Git           (git_)
 import NixShellBit.Project       (Project(Project), currentProject, detectProject)
 import NixShellBit.Sbox          (localProject, remoteProject)
-import System.Directory          (removeDirectoryRecursive, withCurrentDirectory)
+import System.Directory          (removeDirectoryRecursive)
 import System.FilePath           (takeBaseName, (</>))
-import Test.Hspec                (Spec, around_, before_, context, describe, it,
-                                  shouldReturn)
+import Test.Hspec                (Spec, before_, context, describe, it, shouldReturn)
 
 spec :: FilePath -> Spec
 spec sand = do
@@ -16,17 +15,16 @@ spec sand = do
       origin = remoteProject sand
 
   describe "currentProject" $ do
-    around_ (withCurrentDirectory repo) $ do
-      context "when working directory is in a git repo" $
-        it "can detect project from repo's remote" $
-          currentProject `shouldReturn`
-            (Just . Project . takeBaseName) origin
+    context "when working directory is in a git repo" $
+      it "can detect project from repo's remote" $
+        currentProject `shouldReturn`
+          (Just . Project . takeBaseName) origin
 
-      context "when working directory is not in a git repo" $
-        before_ (removeDirectoryRecursive (repo </> ".git")) $
+    context "when working directory is not in a git repo" $
+      before_ (removeDirectoryRecursive (repo </> ".git")) $
 
-        it "returns Nothing" $
-          currentProject `shouldReturn` Nothing
+      it "returns Nothing" $
+        currentProject `shouldReturn` Nothing
 
 
   describe "detectProject" $ do

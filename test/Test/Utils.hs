@@ -2,27 +2,40 @@
 
 module Test.Utils
   ( capture
+  , captureExitCode
   , captureStderr
   , captureStdout
   , colorStrip
+  , maybeCapture
+  , prExitCode
+  , prStderr
+  , prStdout
   , shouldMatch
   , silence
   , string
+  , withEnv
   , withInput
   ) where
 
-import Control.Concurrent (newEmptyMVar, putMVar, readMVar)
 import Control.Monad      (unless)
 import Data.ByteString    (ByteString)
+import GHC.Conc           (atomically, newTVar, readTVarIO, writeTVar)
+import System.Exit        (ExitCode)
 import Test.Hspec         (Expectation, HasCallStack, expectationFailure)
-import Test.Main          (ProcessResult, captureProcessResult, prStderr,
-                           prStdout, withStdin)
+import Test.Main          (ProcessResult, captureProcessResult, prExitCode,
+                           prStderr, prStdout, withEnv, withStdin)
 import Text.Regex.TDFA    ((=~))
+import UnliftIO.Exception (throwString)
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
+
+
+captureExitCode :: IO a -> IO ExitCode
+captureExitCode =
+  fmap prExitCode . processResult
 
 
 captureStdout :: IO a -> IO ByteString
@@ -37,7 +50,7 @@ captureStderr =
 
 processResult :: IO a -> IO ProcessResult
 processResult =
-  fmap fst . capture
+  fmap fst . maybeCapture
 
 
 silence :: IO a -> IO a
@@ -48,10 +61,22 @@ silence =
 capture :: IO a -> IO (ProcessResult, a)
 capture action =
   do
-    var <- newEmptyMVar
-    res <- captureProcessResult (action >>= putMVar var)
-    val <- readMVar var
-    pure (res, val)
+    (res, mval) <- maybeCapture action
+
+    case mval of
+      Nothing  -> throwString "action failed"
+      Just val -> pure (res, val)
+
+
+maybeCapture :: IO a -> IO (ProcessResult, Maybe a)
+maybeCapture action =
+  do
+    var  <- atomically $ newTVar Nothing
+    res  <- captureProcessResult
+          $ action >>= atomically . writeTVar var . Just
+    mval <- readTVarIO var
+
+    pure (res, mval)
 
 
 withInput :: [String] -> IO a -> IO a

@@ -1,5 +1,6 @@
 module NixShellBit.Operation
   ( Operation(..)
+  , OperationError(..)
   , operation
   ) where
 
@@ -10,36 +11,46 @@ import NixShellBit.Git     (gitTaggedVersions)
 import NixShellBit.Nix     (NixArguments, arguments, derivation)
 import NixShellBit.Options (Options, Command(Exec, List), optArgs, optCommand,
                             optProject, optVersion)
-import NixShellBit.PPrint  (oopsNoProject, oopsNoVersion, oopsNoVersions,
-                            oopsVersionUnavailable)
 import NixShellBit.Project (Project, currentProject, unProject)
-import NixShellBit.Version (Version(Version), currentVersion, unVersion)
+import NixShellBit.Version (Version(Version), currentVersion)
+import UnliftIO.Exception  (Exception, Typeable, throwIO)
 
 
 data Operation
   = ListVersions [Version] (Maybe Version)
   | ExecuteShell NixArguments
+  deriving (Eq, Show)
+
+
+data OperationError
+  = NoProject
+  | NoVersion
+  | NoVersionsFound Project
+  | VersionNotFound [Version] Version
+  deriving (Eq, Show, Typeable)
+
+instance Exception OperationError
 
 
 operation :: Options -> IO Operation
 operation opts =
   do
     config   <- configInit
-    project  <- getProject >>= maybe oopsNoProject pure
+    project  <- getProject >>= maybe (throwIO NoProject) pure
     versions <- taggedVersions config project
     mversion <- getVersion
 
     when (null versions)
-         (oopsNoVersions (unProject project))
+         (throwIO (NoVersionsFound project))
 
     case command opts of
       List ->
         pure (ListVersions versions mversion)
       Exec -> do
-        version <- maybe oopsNoVersion pure mversion
+        version <- maybe (throwIO NoVersion) pure mversion
 
         unless (version `elem` versions)
-               (oopsUnavailable versions version)
+               (throwIO (VersionNotFound versions version))
 
         ExecuteShell <$> nixArguments config project version
   where
@@ -58,11 +69,6 @@ operation opts =
 
     command :: Options -> Command
     command = fromMaybe Exec . optCommand
-
-    oopsUnavailable :: [Version] -> Version -> IO ()
-    oopsUnavailable versions version =
-      oopsVersionUnavailable (map unVersion versions)
-                             (unVersion version)
 
     nixArguments
       :: Config

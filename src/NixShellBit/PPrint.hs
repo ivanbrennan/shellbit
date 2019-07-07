@@ -1,20 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module NixShellBit.PPrint
-  ( askSave
+  ( Doc
+  , askSave
   , askUrl
-  , fatalError
+  , fatal
+  , line
   , listItems
-  , oopsNoProject
-  , oopsNoVersion
-  , oopsNoVersions
-  , oopsVersionUnavailable
+  , noProject
+  , noVersion
+  , noVersions
+  , putDocLn
+  , putVersionNotFound
   ) where
 
 import Data.Char            (toLower)
 import NixShellBit.Line     (readline)
-import System.Environment   (getProgName)
-import System.Exit          (exitFailure)
 import System.IO            (Handle, hFlush, stderr, stdout)
 import System.Process.Typed (byteStringInput, proc, readProcessStdout_, setStdin)
 import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon, debold,
@@ -91,51 +92,44 @@ listItems' hdl items focusItem =
             | otherwise = debold (text x)
 
 
-oopsNoProject :: IO a
-oopsNoProject =
-  die $ vcat
-      [ yellow "Could not detect project"
-      , "Try --project=PROJECT"
-      ]
+noProject :: Doc
+noProject =
+  vcat [ yellow "Could not detect project"
+       , "Try --project=PROJECT"
+       ]
 
 
-oopsNoVersion :: IO a
-oopsNoVersion =
-  die $ vcat
-      [ yellow "Could not detect version"
-      , "Try --version=VERSION"
-      ]
+noVersion :: Doc
+noVersion =
+  vcat [ yellow "Could not detect version"
+       , "Try --version=VERSION"
+       ]
 
 
-oopsNoVersions :: String -> IO a
-oopsNoVersions project =
-  die $ (yellow . hsep)
-      [ "No versions available for project"
-      , dquotes (text project)
-      ]
+noVersions :: String -> Doc
+noVersions project =
+  (yellow . hsep)
+    [ "No versions available for project"
+    , dquotes (text project)
+    ]
 
 
-oopsVersionUnavailable :: [String] -> String -> IO a
-oopsVersionUnavailable versions version =
+putVersionNotFound :: [String] -> String -> IO ()
+putVersionNotFound versions version =
   do
     put $ vcat
         [ yellow ("Version" <+> text version <+> "not found")
         , "The following versions are available by --version=VERSION"
         , mempty
         ]
-    listItems' stderr versions (Just version)
-    exitFailure
+    listItems' stderr versions Nothing
 
 
-fatalError :: String -> String -> IO a
-fatalError cmd err =
-  do
-    prog <- getProgName
-    die $ hsep
-        [ red (text prog) <> colon
-        , red (text cmd) <> colon
-        , text err
-        ]
+fatal :: String -> String -> Doc
+fatal cmd err =
+  hsep [ red (text cmd) <> colon
+       , text err
+       ]
 
 
 ask :: Doc -> IO String
@@ -152,12 +146,11 @@ ask' doc =
     readline
 
 
-die :: Doc -> IO a
-die doc =
+putDocLn :: Doc -> IO ()
+putDocLn doc =
   do
     put doc
     put line
-    exitFailure
 
 
 put :: Doc -> IO ()

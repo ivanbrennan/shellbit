@@ -22,8 +22,7 @@ import NixShellBit.Git           (git_)
 import NixShellBit.Config        (configInit)
 import System.Directory          (copyFile, createDirectory)
 import System.FilePath           ((</>))
-import Test.Main                 (withEnv, withStdin)
-import Test.Utils                (silence)
+import Test.Utils                (silence, withEnv, withInput)
 
 import qualified Data.ByteString.Char8 as C
 import qualified Test.Sandbox as S
@@ -50,7 +49,7 @@ withSandbox =
             createDirectory (xdgConfig </> "git")
             copyDirectoryRecursive silent "test/fixtures" (fixturesPath sand)
 
-            _ <- withStdin "yes" (silence configInit)
+            _ <- withInput ["yes"] (silence configInit)
             C.writeFile (xdgConfig </> "git/config") ""
 
             -- configure sandbox Git user

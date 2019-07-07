@@ -2,20 +2,16 @@
 
 module NixShellBit.GitSpec (spec) where
 
-import Control.Monad        (void)
 import Data.Foldable        (traverse_)
-import NixShellBit.Git      (gitArchiveUrl, gitClone, gitDiscoverRepo,
+import NixShellBit.Git      (GitError, gitArchiveUrl, gitClone, gitDiscoverRepo,
                              gitRemoteList, gitTaggedVersions, gitRemoteGetUrl)
 import NixShellBit.Sbox     (localProject, projectName, remoteProject,
                              remoteNixShells, setTags)
 import System.Directory     (createDirectory, createDirectoryIfMissing)
 import System.FilePath      ((</>))
-import System.Process.Typed (proc, readProcessStdout_)
+import System.Process.Typed (proc, readProcess_, readProcessStdout_)
 import Test.Hspec           (Spec, before_, context, describe, it, shouldBe,
-                             shouldContain, shouldReturn, pendingWith)
-import Test.Main            (ExitCode(ExitFailure), captureProcessResult,
-                             prExitCode, prStderr)
-import Test.Utils           (string)
+                             shouldReturn, shouldThrow)
 
 import qualified Data.ByteString.Lazy.Char8 as C
 import qualified Data.Text as T
@@ -90,23 +86,13 @@ spec sand = do
       context "given any other directory" $ do
         let path = localProject sand </> "foo"
 
-        it "reports error if directory exists" $ do
+        it "throws GitError if directory exists" $ do
           createDirectory path
 
-          r <- captureProcessResult (void (gitRemoteList path))
+          gitRemoteList path `shouldThrow` isGitError
 
-          prExitCode r `shouldBe` ExitFailure 1
-
-          string (prStderr r) `shouldContain`
-            "Could not find repository"
-
-        it "reports error if directory does not exist" $ do
-          r <- captureProcessResult (void (gitRemoteList path))
-
-          prExitCode r `shouldBe` ExitFailure 1
-
-          string (prStderr r) `shouldContain`
-            "No such file or directory"
+        it "throws GitError if directory does not exist" $
+          gitRemoteList path `shouldThrow` isGitError
 
 
     describe "gitTaggedVersions" $ do
@@ -141,7 +127,7 @@ spec sand = do
         lines (C.unpack o) `shouldBe` lines url
 
       it "checks out the requested branch" $ do
-        traverse_ (readProcessStdout_ . proc "git")
+        traverse_ (readProcess_ . proc "git")
           [ ["-C", url, "checkout", "-b", "foo"]
           , ["-C", url, "commit", "--allow-empty", "--message", "msg"]
           , ["-C", url, "checkout", "master"]
@@ -162,23 +148,9 @@ spec sand = do
         gitRemoteGetUrl repo "origin" `shouldReturn`
           remoteProject sand
 
-      it "reports error if repo does not exist" $ do
-        r <- captureProcessResult
-           $ void (gitRemoteGetUrl (sand </> "garbage") "origin")
-
-        prExitCode r `shouldBe` ExitFailure 1
-
-        string (prStderr r) `shouldContain`
-          "No such file or directory"
-
-      it "segfaults if remote does not exist" $ do
-        pendingWith "FOOOO"
-        -- We only ever call gitRemoteGetUrl with a remote name
-        -- we previously fetched via gitRemoteList, so this isn't
-        -- (currently) a real issue, but I'd like to understand
-        -- what exactly causes the segfault and whether there's
-        -- a better way to navigate such cases.
-        r <- captureProcessResult
-           $ void (gitRemoteGetUrl (sand </> "garbage") "origin")
-
-        prExitCode r `shouldBe` ExitFailure 1
+      it "throws GitError if repo does not exist" $
+        gitRemoteGetUrl (sand </> "garbage") "origin" `shouldThrow`
+          isGitError
+  where
+      isGitError :: GitError -> Bool
+      isGitError = const True
