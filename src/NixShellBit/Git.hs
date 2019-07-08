@@ -67,19 +67,20 @@ gitArchiveUrl remoteUrl ref =
         ssh =
           do
             _ <- "git" >> char '@'
-            h <- host
-            _ <- char ':'
-            p <- path
-            _ <- ext
-            pure (h, p)
+            hostAndPath (char ':')
 
         https :: Parser (Text, Text)
         https =
           do
             _ <- "https" >> "://"
             _ <- option "" (takeWhile1 (inClass "a-zA-Z0-9_-") >> "@")
+            hostAndPath (char '/')
+
+        hostAndPath :: Parser Char -> Parser (Text, Text)
+        hostAndPath sep =
+          do
             h <- host
-            _ <- char '/'
+            _ <- sep
             p <- path
             _ <- ext
             pure (h, p)
