@@ -160,7 +160,7 @@ gitTaggedVersions
   :: Text
   -> String
   -> IO [String]
-gitTaggedVersions url pattern =
+gitTaggedVersions url name =
   do
     out <- readProcessStdout_ (proc "git" ls_remote)
     pure $ mapMaybe v (L.lines out)
@@ -171,7 +171,7 @@ gitTaggedVersions url pattern =
       , "--tags"
       , "--sort=version:refname"
       , T.unpack url
-      , pattern ++ "-*"
+      , name ++ "-*"
       ]
 
     v :: L.ByteString -> Maybe String
@@ -182,7 +182,7 @@ gitTaggedVersions url pattern =
       . L.toStrict
 
     prefix :: C.ByteString
-    prefix = "refs/tags/" <> C.pack pattern <> "-"
+    prefix = "refs/tags/" <> C.pack name <> "-"
 
 
 {-| hlibgit2 has a c'git_clone binding but using it would mean
