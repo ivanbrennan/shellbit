@@ -11,7 +11,7 @@ import Control.Monad             ((>=>))
 import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
 import Data.Aeson                (FromJSON, decodeFileStrict, parseJSON,
                                   withObject, (.:))
-import Data.Maybe                (listToMaybe, maybe)
+import Data.Maybe                (listToMaybe)
 import Distribution.Package      (packageVersion)
 import Distribution.PackageDescription.Parsec (readGenericPackageDescription)
 import Distribution.Pretty       (prettyShow)
@@ -19,8 +19,9 @@ import Distribution.Verbosity    (silent)
 import NixShellBit.Git           (gitDiscoverRepo)
 import System.Directory          (getCurrentDirectory, getHomeDirectory)
 import System.FilePath           (dropTrailingPathSeparator, takeDirectory)
-import System.FilePath.Find      (FileType(RegularFile), depth, extension,
-                                  fileName, fileType, find, (==?), (&&?))
+import System.FilePath.Find      (FileType(RegularFile), FilterPredicate, depth,
+                                  extension, fileName, fileType, find, (==?),
+                                  (&&?))
 
 import qualified Data.ByteString.Char8 as C
 
@@ -70,27 +71,20 @@ detectVersion directory =
 
     findCabalFile :: FilePath -> MaybeT IO FilePath
     findCabalFile =
-      MaybeT
-        . fmap listToMaybe
-        . find (depth ==? 0)
-               ((extension ==? ".cabal") &&?
-                (fileType ==? RegularFile))
+      MaybeT . findFile (extension ==? ".cabal")
 
     findPkgJSONFile :: FilePath -> MaybeT IO FilePath
     findPkgJSONFile =
-      MaybeT
-        . fmap listToMaybe
-        . find (depth ==? 0)
-               ((fileName ==? "package.json") &&?
-                (fileType ==? RegularFile))
+      MaybeT . findFile (fileName ==? "package.json")
 
     findVersionFile :: FilePath -> MaybeT IO FilePath
     findVersionFile =
-      MaybeT
-        . fmap listToMaybe
-        . find (depth ==? 0)
-               ((fileName ==? "VERSION") &&?
-                (fileType ==? RegularFile))
+      MaybeT . findFile (fileName ==? "VERSION")
+
+    findFile :: FilterPredicate -> FilePath -> IO (Maybe FilePath)
+    findFile predicate =
+      fmap listToMaybe
+        . find (depth ==? 0) ((fileType ==? RegularFile) &&? predicate)
 
     cabalPkgVersion :: FilePath -> MaybeT IO Version
     cabalPkgVersion =
