@@ -4,12 +4,11 @@ module NixShellBit.Project
   , detectProject
   ) where
 
-import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
-import Data.List                 (sortOn)
-import NixShellBit.Git           (gitDiscoverRepo, gitRemoteGetUrl, gitRemoteList)
-import Safe                      (headMay)
-import System.Directory          (getCurrentDirectory, getHomeDirectory)
-import System.FilePath           (takeBaseName)
+import Data.List        (sortOn)
+import NixShellBit.Git  (gitDiscoverRepo, gitRemoteGetUrl, gitRemoteList)
+import Safe             (headMay)
+import System.Directory (getCurrentDirectory, getHomeDirectory)
+import System.FilePath  (takeBaseName)
 
 
 newtype Project = Project
@@ -29,20 +28,16 @@ currentProject =
 
 detectProject :: FilePath -> IO (Maybe Project)
 detectProject repo =
-    runMaybeT (detectRemote >>= getUrl >>= baseName)
-  where
-    detectRemote :: MaybeT IO String
-    detectRemote =
-      MaybeT (prefer "origin" <$> gitRemoteList repo)
+  do
+    remotes <- gitRemoteList repo
 
+    case prefer "origin" remotes of
+      Nothing -> pure Nothing
+      Just o  -> Just . basename <$> gitRemoteGetUrl repo o
+  where
     prefer :: String -> [String] -> Maybe String
     prefer fav =
       headMay . sortOn (/= fav)
 
-    getUrl :: String -> MaybeT IO String
-    getUrl remote =
-      MaybeT (Just <$> gitRemoteGetUrl repo remote)
-
-    baseName :: String -> MaybeT IO Project
-    baseName =
-      MaybeT . pure . Just . Project . takeBaseName
+    basename :: String -> Project
+    basename = Project . takeBaseName
