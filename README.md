@@ -54,4 +54,5 @@ nix-env --install --file release.nix --attr nix-shell-bit
 Todos:
 - [ ] use conduit-extra
 - [ ] pin nixpkgs and ghc
+- [ ] update test/suite integration tests
 - [x] nix derivation
