@@ -1,69 +1,26 @@
-{ bash
-, coreutils
-, findutils
-, gawk
-, git
-, gnugrep
-, gnused
-, lib
-, makeWrapper
-, ncurses
-, nix
-, perl
-, runCommand
-, stdenv
-, utillinux
+{ mkDerivation, aeson, ansi-wl-pprint, attoparsec, base, bytestring
+, Cabal, dhall, directory, filemanip, filepath, haskeline, hlibgit2
+, hspec, main-tester, optparse-applicative, prettyprinter
+, regex-tdfa, safe, stdenv, temporary, text, transformers
+, typed-process, unix, unliftio
 }:
-
-let
-  propagatedBuildInputs = [
-    bash
-    coreutils
-    findutils
-    gawk
-    git
-    gnugrep
-    gnused
-    ncurses
-    nix
-    perl
-    utillinux
+mkDerivation {
+  pname = "nix-shell-bit";
+  version = "0.1.0.0";
+  src = ./.;
+  isLibrary = true;
+  isExecutable = true;
+  libraryHaskellDepends = [
+    aeson ansi-wl-pprint attoparsec base bytestring Cabal dhall
+    directory filemanip filepath haskeline hlibgit2
+    optparse-applicative prettyprinter safe temporary text transformers
+    typed-process unix unliftio
   ];
-
-in runCommand "nix-shell-bit" {
-  inherit propagatedBuildInputs;
-
-  nativeBuildInputs = [ makeWrapper ];
-
-  meta = {
-    description = "nix-shell tool to find/use remote derivations";
-    license = lib.licenses.mit;
-    platforms = lib.platforms.linux ++ lib.platforms.darwin;
-  };
-} ''
-  install -D -m755 \
-      ${./bin}/$name \
-      $out/bin/$name
-
-  install -D -m755 \
-      ${./libexec}/archive-url \
-      $out/libexec/archive-url
-
-  install -D -m644 \
-      ${./completions}/_$name.bash \
-      $out/share/bash-completion/completions/$name
-
-  sed -i "s|^LIBEXEC=.*|LIBEXEC=$out/libexec|" $out/bin/$name
-
-  patchShebangs --host $out/bin
-  patchShebangs --host $out/libexec
-
-  ${stdenv.shell} -n $out/bin/$name
-
-  wrapProgram $out/bin/$name \
-      --prefix PATH : "${lib.makeBinPath propagatedBuildInputs}"
-
-  mkdir -p $out/nix-support
-  printWords ${toString propagatedBuildInputs} \
-      > $out/nix-support/propagated-build-inputs
-''
+  executableHaskellDepends = [ base ];
+  testHaskellDepends = [
+    base bytestring Cabal directory filemanip filepath hspec
+    main-tester optparse-applicative regex-tdfa temporary text
+    typed-process unliftio
+  ];
+  license = stdenv.lib.licenses.bsd3;
+}
