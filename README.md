@@ -36,9 +36,9 @@ env = Nothing :: Maybe [(String, String)]
 executeFile "nix-shell" search args env
 ```
 
-To update `nix-shell-bit.nix`:
+To update `default.nix`:
 ```sh
-cabal2nix . > nix-shell-bit.nix
+cabal2nix . > default.nix
 rm -f .ghc.environment.*
 ```
 
