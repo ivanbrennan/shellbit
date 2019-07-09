@@ -1,3 +1,4 @@
+Resolving dependencies...
 _nix-shell-bit()
 {
     local CMDLINE
@@ -11,4 +12,4 @@ _nix-shell-bit()
     COMPREPLY=( $(nix-shell-bit "${CMDLINE[@]}") )
 }
 
-complete -o bashdefault -o default -F _nix-shell-bit nix-shell-bit
+complete -o filenames -F _nix-shell-bit nix-shell-bit
