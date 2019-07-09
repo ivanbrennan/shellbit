@@ -1,4 +1,3 @@
-Resolving dependencies...
 _nix-shell-bit()
 {
     local CMDLINE
