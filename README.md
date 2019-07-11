@@ -21,6 +21,11 @@ cabal v2-run nix-shell-bit-test \
     --rerun
 ```
 
+integration tests
+```sh
+test/integration
+```
+
 build
 ```sh
 cabal v2-build --ghc-options=-Werror
@@ -54,5 +59,5 @@ nix-env --install --file release.nix --attr nix-shell-bit
 Todos:
 - [ ] use conduit-extra
 - [ ] pin nixpkgs and ghc
-- [ ] update test/suite integration tests
+- [x] update test/suite integration tests
 - [x] nix derivation
