@@ -3,51 +3,58 @@
 
 set -eu
 
-export ORIG_PWD SANDBOX XDG_CONFIG_HOME EXECUTABLE
-ORIG_PWD="$PWD"
+export ORIG_PWD="$PWD"
 TOPLEVEL=$(git -C "${BASH_SOURCE[0]%/*}" rev-parse --show-toplevel)
-SANDBOX=$(mktemp -dt "nix-shell-bit-sandbox.XXXXXX")
-XDG_CONFIG_HOME="$SANDBOX/XDG_CONFIG_HOME.seed"
+
+SANDBOX=$(mktemp -dt "integration-test-sandbox.XXXXXX")
+export SAND="$SANDBOX/sand"
+export SEED="$SANDBOX/seed"
+export XDG_CONFIG_HOME="$SAND/XDG_CONFIG_HOME"
+export LOCAL_PROJECT="$SAND/PROJECT-local"
+export REMOTE_SHELLS="$SAND/NIX_SHELLS"
+
+nix-shell --run 'cabal v2-build'
+export EXECUTABLE=$(find $TOPLEVEL           \
+                         -type f -executable \
+                         -name nix-shell-bit \
+                         -printf "%T@ %p\n"  \
+                    | sort -n | tail -n 1    \
+                    | awk '{print $NF}')
 
 trap "cd '$ORIG_PWD'; rm -rf '$SANDBOX'" EXIT INT QUIT TERM
 
-mkdir "$SANDBOX/"{remotes,locals}
+mkdir "$SAND"
 
-# Prepare executable
-nix-shell --run 'cabal v2-build'
-EXECUTABLE=$(find $TOPLEVEL \
-                  -type f \
-                  -executable \
-                  -name nix-shell-bit \
-                  -printf "%T@ %p\n" \
-             | sort -n | tail -n 1 | awk '{print $NF}')
-
-# Configure sandbox
-mkdir "$XDG_CONFIG_HOME"
-mkdir "$XDG_CONFIG_HOME/git"
+# Configure sandbox git
+mkdir "$XDG_CONFIG_HOME" \
+      "$XDG_CONFIG_HOME/git"
 touch "$XDG_CONFIG_HOME/git/config"
 git config --global user.email "nobody@example.com"
 git config --global user.name "nobody"
+
+# Configure sandbox nix-shell-bit
 mkdir "$XDG_CONFIG_HOME/nix-shell-bit"
 cat > "$XDG_CONFIG_HOME/nix-shell-bit/config.dhall" <<EOF
 { nixShellBitUrl =
-    [ "$SANDBOX/NIX_SHELL_BIT_URL" ] : Optional Text
+    [ "$REMOTE_SHELLS" ] : Optional Text
 , nixShellBitBranch =
     [] : Optional Text
 }
 EOF
 
 # Prepare project remote
-git init --quiet --template='' "$SANDBOX/remotes/PROJECT"
-echo '0.1.0' > "$SANDBOX/remotes/PROJECT/VERSION"
-git -C "$SANDBOX/remotes/PROJECT" add VERSION
-git -C "$SANDBOX/remotes/PROJECT" commit --quiet -m '0.1.0'
+REMOTE_PROJECT="$SAND/PROJECT"
+git init --quiet --template='' "$REMOTE_PROJECT"
+echo '0.1.0' > "$REMOTE_PROJECT/VERSION"
+git -C "$REMOTE_PROJECT" add VERSION
+git -C "$REMOTE_PROJECT" commit --quiet -m '0.1.0'
 
 # Prepare seeds
-git clone --quiet --template='' "$SANDBOX/remotes/PROJECT" "$SANDBOX/locals/PROJECT.seed"
+git clone --quiet --template='' "$REMOTE_PROJECT" "$LOCAL_PROJECT"
 
-git init --quiet --template='' "$SANDBOX/NIX_SHELL_BIT_URL.seed"
-cat > "$SANDBOX/NIX_SHELL_BIT_URL.seed/default.nix" <<'EOF'
+# Setup remote derivation
+git init --quiet --template='' "$REMOTE_SHELLS"
+cat > "$REMOTE_SHELLS/default.nix" <<'EOF'
 {
   PROJECT = (import <nixpkgs> {}).mkShell {
     name = "PROJECT";
@@ -59,11 +66,13 @@ cat > "$SANDBOX/NIX_SHELL_BIT_URL.seed/default.nix" <<'EOF'
   };
 }
 EOF
-git -C "$SANDBOX/NIX_SHELL_BIT_URL.seed" add default.nix
-git -C "$SANDBOX/NIX_SHELL_BIT_URL.seed" commit --quiet -m 'PROJECT 0.1.0'
-git -C "$SANDBOX/NIX_SHELL_BIT_URL.seed" tag PROJECT-0.1.0
+git -C "$REMOTE_SHELLS" add default.nix
+git -C "$REMOTE_SHELLS" commit --quiet -m 'PROJECT 0.1.0'
+git -C "$REMOTE_SHELLS" tag PROJECT-0.1.0
 
-XDG_CONFIG_HOME="$SANDBOX/XDG_CONFIG_HOME" \
-    bats ${CI:+--tap} --recursive "$TOPLEVEL/test"
+# Save state to seed
+cp -r "$SAND" "$SEED"
+
+bats ${CI:+--tap} --recursive "$TOPLEVEL/test"
 
 # vim: filetype=sh

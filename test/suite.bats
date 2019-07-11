@@ -1,17 +1,13 @@
 #! /usr/bin/env bats
 
 setup() {
-    cp -r "$SANDBOX/NIX_SHELL_BIT_URL"{.seed,}
-    cp -r "$SANDBOX/XDG_CONFIG_HOME"{.seed,}
-    cp -r "$SANDBOX/locals/PROJECT"{.seed,}
-    cd "$SANDBOX/locals/PROJECT"
+    cp -r "$SEED" "$SAND"
+    cd "$LOCAL_PROJECT"
 }
 
 teardown() {
     cd "$ORIG_PWD"
-    rm -rf "$SANDBOX/locals/PROJECT"
-    rm -rf "$SANDBOX/XDG_CONFIG_HOME"
-    rm -rf "$SANDBOX/NIX_SHELL_BIT_URL"
+    rm -rf "$SAND"
 }
 
 pseudo_tty() {
@@ -36,10 +32,10 @@ colorstrip() {
 }
 
 @test 'it prompts for NIX_SHELL_BIT_URL if it cannot be detected' {
-    local url="$SANDBOX/NIX_SHELL_BIT_URL"
+    local url="$REMOTE_SHELLS"
     local out
 
-    rm "$SANDBOX/XDG_CONFIG_HOME/nix-shell-bit/config.dhall"
+    rm "$XDG_CONFIG_HOME/nix-shell-bit/config.dhall"
 
     out=$(
         pseudo_tty "$EXECUTABLE" \
@@ -47,8 +43,8 @@ colorstrip() {
             2>&1 | colorstrip
     )
 
-    grep -F 'NIX_SHELL_BIT_URL not found'       <<< "$out"
-    grep -F 'Please enter NIX_SHELL_BIT_URL'    <<< "$out"
+    grep -F 'NIX_SHELL_BIT_URL not found'    <<< "$out"
+    grep -F 'Please enter NIX_SHELL_BIT_URL' <<< "$out"
 }
 
 @test 'it enters a development environment' {
@@ -62,8 +58,8 @@ colorstrip() {
 }
 
 @test 'it can use a specific NIX_SHELL_BIT_BRANCH' {
-    git -C "$SANDBOX/NIX_SHELL_BIT_URL" checkout -b fnord
-    cat > "$SANDBOX/NIX_SHELL_BIT_URL/default.nix" <<'EOF'
+    git -C "$REMOTE_SHELLS" checkout -b fnord
+    cat > "$REMOTE_SHELLS/default.nix" <<'EOF'
 {
   PROJECT = (import <nixpkgs> {}).mkShell {
     shellHook = ''
@@ -73,7 +69,7 @@ colorstrip() {
   };
 }
 EOF
-    git -C "$SANDBOX/NIX_SHELL_BIT_URL" commit --all --quiet -m 'fnord'
+    git -C "$REMOTE_SHELLS" commit --all --quiet -m 'fnord'
 
     NIX_SHELL_BIT_BRANCH=fnord \
         "$EXECUTABLE" \
