@@ -1,63 +1,43 @@
 ## nix-shell-bit
 
 Launch a nix-shell for the current project.
-
 ```sh
 nix-shell-bit
 ```
 
-simple tests
+## development
+
+build
 ```sh
-cabal v2-test
+make
 ```
 
-enriched tests
+run tests
 ```sh
-cabal v2-run nix-shell-bit-test \
-    --ghc-options=-Werror \
-    -- \
-    --failure-report=$PWD/.hspec-failures \
-    --rerun-all-on-success \
-    --rerun
+make test
 ```
 
 integration tests
 ```sh
-test/integration
+make integration-test
 ```
 
-build
+generate completion scripts
 ```sh
-cabal v2-build --ghc-options=-Werror
+make completions
 ```
 
-## notes
-
-update default.nix
+install
 ```sh
-cabal2nix . > default.nix
-rm -f .ghc.environment.*
+make install
 ```
 
-generate bash/zsh completion scripts:
+uninstall
 ```sh
-cabal v2-build --ghc-options=-Werror &&
-cabal v2-exec --verbose=0 nix-shell-bit -- \
-    --bash-completion-script nix-shell-bit \
-    > completions/_nix-shell-bit.bash &&
-cabal v2-exec --verbose=0 nix-shell-bit -- \
-    --zsh-completion-script nix-shell-bit \
-    > completions/_nix-shell-bit.zsh
+make uninstall
 ```
 
-install nix package
-```sh
-rm -f .ghc.environment.*
-nix-env --install --file release.nix --attr nix-shell-bit
-```
+## Todos
 
-Todos:
 - [ ] use conduit-extra
 - [ ] pin nixpkgs and ghc
-- [x] update test/suite integration tests
-- [x] nix derivation
