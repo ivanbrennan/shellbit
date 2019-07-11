@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell -i bash -p bats coreutils findutils gawk git gnugrep gnused ncurses perl socat utillinux
+#! nix-shell -i bash -p bats coreutils findutils gawk git gnugrep ncurses perl socat utillinux
 
 set -eu
 
