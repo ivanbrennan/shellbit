@@ -21,7 +21,7 @@ test: default.nix
 	@nix-shell \
 		--pure ./nix \
 		--attr dev \
-		--run "cabal v2-run nix-shell-bit-test -- $(TEST_FLAGS)"
+		--run "cabal v2-run $(PROJECT_NAME)-test -- $(TEST_FLAGS)"
 
 .PHONY: integration-test
 integration-test: default.nix
@@ -52,9 +52,9 @@ install: default.nix
 .PHONY: uninstall
 uninstall: default.nix
 	@echo "Uninstalling from user profile with nix-env"
-	@nix-env --uninstall nix-shell-bit
+	@nix-env --uninstall $(PROJECT_NAME)
 
-default.nix: nix-shell-bit.cabal
+default.nix: $(PROJECT_NAME).cabal
 	@echo "Generating default.nix"
 	@nix-shell \
 		--pure ./nix/scripts/generate-default.nix \
