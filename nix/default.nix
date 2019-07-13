@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import ./nixpkgs.nix { } }:
 
 with pkgs;
 
@@ -41,5 +41,6 @@ in
     shell = haskellPackages.shellFor {
       packages = p: [ drv ];
       buildInputs = runtimeDeps ++ devUtils;
+      shellHook = builtins.readFile ./prompt.sh;
     };
   }

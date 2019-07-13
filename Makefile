@@ -1,11 +1,8 @@
 PROJECT_NAME ?= nix-shell-bit
 PROJECT_ROOT ?= $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-GHC_COMPILER ?= ghc865
-
 NIXPKGS_OWNER ?= NixOS
 NIXPKGS_REPO  ?= nixpkgs
-NIXPKGS_REV   ?= bc94dcf500286495e3c478a9f9322debc94c4304
 
 TEST_FLAGS  = --failure-report=$$PWD/.hspec-failures
 TEST_FLAGS += --rerun-all-on-success --rerun
@@ -24,7 +21,7 @@ test: default.nix
 	@nix-shell \
 		--pure ./nix \
 		--attr dev \
-		--run "cabal v2-run nix-shell-bit-test -- $(TEST_FLAGS)"
+		--run "cabal v2-run $(PROJECT_NAME)-test -- $(TEST_FLAGS)"
 
 .PHONY: integration-test
 integration-test: default.nix
@@ -55,13 +52,28 @@ install: default.nix
 .PHONY: uninstall
 uninstall: default.nix
 	@echo "Uninstalling from user profile with nix-env"
-	@nix-env --uninstall nix-shell-bit
+	@nix-env --uninstall $(PROJECT_NAME)
 
-default.nix: nix-shell-bit.cabal
+default.nix: $(PROJECT_NAME).cabal
 	@echo "Generating default.nix"
 	@nix-shell \
 		--pure ./nix/scripts/generate-default.nix \
 		--argstr projectRoot $(PROJECT_ROOT)
+
+.PHONY: update-nixpkgs
+update-nixpkgs: require-rev
+	@nix-shell \
+		--pure ./nix/scripts/update-nixpkgs.nix \
+		--argstr projectRoot $(PROJECT_ROOT) \
+		--argstr owner $(NIXPKGS_OWNER) \
+		--argstr repo $(NIXPKGS_REPO) \
+		--argstr rev $(REV)
+
+.PHONY: require-rev
+require-rev:
+ifndef REV
+	$(error REV=<revision> must be specified)
+endif
 
 .PHONY: clean
 clean:

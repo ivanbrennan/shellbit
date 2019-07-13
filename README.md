@@ -22,6 +22,11 @@ integration tests
 make integration-test
 ```
 
+build nix package
+```sh
+make nix-build
+```
+
 generate completion scripts
 ```sh
 make completions
@@ -37,7 +42,11 @@ uninstall
 make uninstall
 ```
 
+update nixpkgs revision
+```sh
+make update-nixpkgs REV=bc94dcf500286495e3c478a9f9322debc94c4304
+```
+
 ## Todos
 
 - [ ] use conduit-extra
-- [ ] pin nixpkgs and ghc

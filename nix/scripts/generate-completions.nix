@@ -1,9 +1,7 @@
-{ pkgs ? import <nixpkgs> {}, projectRoot }:
-
-with pkgs;
+{ projectRoot }:
 
 let
-  dev = (import "${projectRoot}/nix" { inherit pkgs; }).dev;
+  dev = (import "${projectRoot}/nix" { }).dev;
 
 in
   dev.overrideAttrs (old: rec {
