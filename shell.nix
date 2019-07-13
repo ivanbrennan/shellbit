@@ -1,3 +1,1 @@
-{ pkgs ? import <nixpkgs> {} }:
-
-(import ./nix { inherit pkgs; }).shell
+(import ./nix { }).shell
