@@ -6,5 +6,7 @@ cabal.project.local
 
 /.hspec-failures
 
+/result
+
 *.hi
 *.o
