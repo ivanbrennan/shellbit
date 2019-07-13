@@ -40,4 +40,3 @@ make uninstall
 ## Todos
 
 - [ ] use conduit-extra
-- [ ] pin nixpkgs and ghc
