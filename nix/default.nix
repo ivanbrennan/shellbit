@@ -41,5 +41,6 @@ in
     shell = haskellPackages.shellFor {
       packages = p: [ drv ];
       buildInputs = runtimeDeps ++ devUtils;
+      shellHook = builtins.readFile ./prompt.sh;
     };
   }
