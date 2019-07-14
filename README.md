@@ -5,6 +5,16 @@ Launch a nix-shell for the current project.
 nix-shell-bit
 ```
 
+## install / uninstall
+
+```sh
+make install
+```
+
+```sh
+make uninstall
+```
+
 ## development
 
 build
@@ -30,16 +40,6 @@ make nix-build
 generate completion scripts
 ```sh
 make completions
-```
-
-install
-```sh
-make install
-```
-
-uninstall
-```sh
-make uninstall
 ```
 
 update nixpkgs revision
