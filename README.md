@@ -32,6 +32,11 @@ integration tests
 make integration-test
 ```
 
+lint
+```sh
+make lint
+```
+
 build nix package
 ```sh
 make nix-build

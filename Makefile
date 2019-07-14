@@ -32,6 +32,14 @@ integration-test: default.nix
 		--attr dev \
 		--run "test/integration"
 
+.PHONY: lint
+lint: default.nix
+	@echo "Running linter"
+	@nix-shell \
+		--pure ./nix \
+		--attr dev \
+		--run "hlint $(PROJECT_ROOT)/src $(PROJECT_ROOT)/test"
+
 .PHONY: nix-build
 nix-build: default.nix
 	@echo "Running nix-build"
