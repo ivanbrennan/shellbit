@@ -82,7 +82,7 @@ listItems' hdl items focusItem =
       setStdin (byteStringInput bs) (proc "column" [])
 
     bs :: C.ByteString
-    bs = C.pack $ displayS (renderPretty 1.0 80 doc) ""
+    bs = C.pack $ displayS (renderPretty 1.0 80 doc) "\n"
 
     doc :: Doc
     doc = sep (map toDoc items)
