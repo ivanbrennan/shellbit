@@ -22,7 +22,7 @@ import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon, debold,
                              displayS, dquotes, hcat, hPutDoc, hsep, line, red,
                              renderPretty, sep, space, text, vcat, yellow, (<+>))
 
-import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Data.ByteString.Lazy.Char8 as BSL8
 
 
 askUrl :: IO String
@@ -75,14 +75,14 @@ listItems = listItems' stdout
 
 listItems' :: Handle -> [String] -> Maybe String -> IO ()
 listItems' hdl items focusItem =
-    columns >>= C.hPut hdl >> hFlush hdl
+    columns >>= BSL8.hPut hdl >> hFlush hdl
   where
-    columns :: IO C.ByteString
+    columns :: IO BSL8.ByteString
     columns = readProcessStdout_ $
       setStdin (byteStringInput bs) (proc "column" [])
 
-    bs :: C.ByteString
-    bs = C.pack $ displayS (renderPretty 1.0 80 doc) "\n"
+    bs :: BSL8.ByteString
+    bs = BSL8.pack $ displayS (renderPretty 1.0 80 doc) "\n"
 
     doc :: Doc
     doc = sep (map toDoc items)

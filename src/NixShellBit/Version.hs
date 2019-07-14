@@ -23,7 +23,7 @@ import System.FilePath.Find      (FileType(RegularFile), FilterPredicate, depth,
                                   extension, fileName, fileType, find, (==?),
                                   (&&?))
 
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString.Char8 as BS8
 
 
 newtype Version = Version
@@ -99,5 +99,5 @@ detectVersion directory =
     genericPkgVersion :: FilePath -> MaybeT IO Version
     genericPkgVersion path =
       do
-        line <- MaybeT (listToMaybe . C.lines <$> C.readFile path)
-        pure $ Version (C.unpack line)
+        line <- MaybeT (listToMaybe . BS8.lines <$> BS8.readFile path)
+        pure $ Version (BS8.unpack line)

@@ -27,8 +27,8 @@ import Test.Main          (ProcessResult, captureProcessResult, prExitCode,
 import Text.Regex.TDFA    ((=~))
 import UnliftIO.Exception (throwString)
 
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 
@@ -81,7 +81,7 @@ maybeCapture action =
 
 withInput :: [String] -> IO a -> IO a
 withInput input =
-  withStdin (C.unlines (map C.pack input))
+  withStdin (BS8.unlines (map BS8.pack input))
 
 
 string :: ByteString -> String
@@ -95,8 +95,8 @@ colorStrip = go ""
     go acc xs = go (acc <> a) (dropSGR b)
       where
         -- SGR sequences begin with `ESC[` and end with `m`
-        (a, b) = B.breakSubstring "\ESC[" xs
-        dropSGR = B.drop 1 . B.dropWhile (/= 0x6d)
+        (a, b) = BS.breakSubstring "\ESC[" xs
+        dropSGR = BS.drop 1 . BS.dropWhile (/= 0x6d)
 
 
 infix 1 `shouldMatch`
