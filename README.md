@@ -54,5 +54,4 @@ make update-nixpkgs REV=bc94dcf500286495e3c478a9f9322debc94c4304
 
 ## Todos
 
-- [ ] replace column with a Haskell implementation
 - [ ] use conduit-extra

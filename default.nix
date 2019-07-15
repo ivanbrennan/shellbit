@@ -1,8 +1,8 @@
 { mkDerivation, aeson, ansi-wl-pprint, attoparsec, base, bytestring
 , Cabal, dhall, directory, filemanip, filepath, haskeline, hlibgit2
 , hspec, main-tester, optparse-applicative, prettyprinter
-, regex-tdfa, safe, stdenv, temporary, text, transformers
-, typed-process, unix, unliftio
+, regex-tdfa, safe, stdenv, temporary, terminal-size, text
+, transformers, typed-process, unix, unliftio
 }:
 mkDerivation {
   pname = "nix-shell-bit";
@@ -13,8 +13,8 @@ mkDerivation {
   libraryHaskellDepends = [
     aeson ansi-wl-pprint attoparsec base bytestring Cabal dhall
     directory filemanip filepath haskeline hlibgit2
-    optparse-applicative prettyprinter safe temporary text transformers
-    typed-process unix unliftio
+    optparse-applicative prettyprinter safe temporary terminal-size
+    text transformers typed-process unix unliftio
   ];
   executableHaskellDepends = [ base ];
   testHaskellDepends = [
