@@ -34,6 +34,10 @@ in
       paths = [ pkg ] ++ runtimeDeps;
     };
 
+    minimal = pkg.overrideAttrs (old: rec {
+      name = "nix-shell-bit-minimal";
+    });
+
     dev = drv.env.overrideAttrs (old: rec {
       buildInputs = old.buildInputs ++ runtimeDeps ++ devUtils;
     });
