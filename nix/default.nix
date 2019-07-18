@@ -19,7 +19,6 @@ let
   runtimeDeps = [
     git
     nix
-    utillinux
   ];
 
   devUtils = [
