@@ -13,7 +13,7 @@ import System.Process.Typed (proc, readProcess_, readProcessStdout_)
 import Test.Hspec           (Spec, before_, context, describe, it, shouldBe,
                              shouldReturn, shouldThrow)
 
-import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.Text as T
 
 
@@ -124,7 +124,7 @@ spec sand = do
         o <- readProcessStdout_
            $ proc "git" ["-C", dest, "remote", "get-url", "origin"]
 
-        lines (C.unpack o) `shouldBe` lines url
+        lines (BSL8.unpack o) `shouldBe` lines url
 
       it "checks out the requested branch" $ do
         traverse_ (readProcess_ . proc "git")
@@ -138,7 +138,7 @@ spec sand = do
         o <- readProcessStdout_ $ proc "git"
              ["-C", dest, "rev-parse", "--abbrev-ref", "HEAD"]
 
-        lines (C.unpack o) `shouldBe` lines "foo"
+        lines (BSL8.unpack o) `shouldBe` lines "foo"
 
 
     describe "gitRemoteGetUrl" $ do

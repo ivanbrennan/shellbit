@@ -15,14 +15,14 @@ module NixShellBit.PPrint
   ) where
 
 import Data.Char            (toLower)
+import NixShellBit.Column   (grid, terminalWidth)
 import NixShellBit.Line     (readline)
 import System.IO            (Handle, hFlush, stderr, stdout)
-import System.Process.Typed (byteStringInput, proc, readProcessStdout_, setStdin)
 import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon, debold,
                              displayS, dquotes, hcat, hPutDoc, hsep, line, red,
-                             renderPretty, sep, space, text, vcat, yellow, (<+>))
+                             renderPretty, space, text, vcat, yellow, (<+>))
 
-import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Data.ByteString.Char8 as BS8
 
 
 askUrl :: IO String
@@ -75,21 +75,21 @@ listItems = listItems' stdout
 
 listItems' :: Handle -> [String] -> Maybe String -> IO ()
 listItems' hdl items focusItem =
-    columns >>= C.hPut hdl >> hFlush hdl
+    renderGrid <$> terminalWidth
+      >>= BS8.hPut hdl
+       >> hFlush hdl
   where
-    columns :: IO C.ByteString
-    columns = readProcessStdout_ $
-      setStdin (byteStringInput bs) (proc "column" [])
+    renderGrid :: Int -> BS8.ByteString
+    renderGrid width =
+        BS8.pack $ displayS (renderPretty 1.0 width rows) "\n"
+      where
+        rows = vcat (map (hcat . map column) (grid items width))
 
-    bs :: C.ByteString
-    bs = C.pack $ displayS (renderPretty 1.0 80 doc) "\n"
-
-    doc :: Doc
-    doc = sep (map toDoc items)
-
-    toDoc :: String -> Doc
-    toDoc x | Just x == focusItem = bold (text x)
-            | otherwise = debold (text x)
+    column :: (String, String) -> Doc
+    column (x, p) =
+        style (text x) <> text p
+      where
+        style = if Just x == focusItem then bold else debold
 
 
 noProject :: Doc

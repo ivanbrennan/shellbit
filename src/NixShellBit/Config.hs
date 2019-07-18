@@ -22,7 +22,7 @@ import System.Directory          (XdgDirectory(XdgConfig),
 import System.Environment        (lookupEnv)
 import System.FilePath           (takeDirectory, takeFileName, (</>), (<.>))
 
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Text as T
 import qualified Dhall
 
@@ -125,7 +125,7 @@ save config =
     write :: FilePath -> IO ()
     write path =
       createDirectoryIfMissing True (takeDirectory path) >>
-      C.writeFile path (serialize attrs)
+      BS8.writeFile path (serialize attrs)
 
     attrs :: Attrs
     attrs = Attrs
@@ -134,9 +134,9 @@ save config =
       }
 
 
-serialize :: Attrs -> C.ByteString
+serialize :: Attrs -> BS8.ByteString
 serialize =
-    C.pack . show . unAnnotate . prettyExpr . embed input
+    BS8.pack . show . unAnnotate . prettyExpr . embed input
   where
     input :: InputType Attrs
     input =

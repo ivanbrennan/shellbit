@@ -34,8 +34,8 @@ import System.FilePath      (searchPathSeparator)
 import System.Process.Typed (proc, readProcessStdout_, readProcess_)
 import UnliftIO.Exception   (Exception, Typeable, throwIO)
 
-import qualified Data.ByteString.Char8 as C
-import qualified Data.ByteString.Lazy.Char8 as L
+import qualified Data.ByteString.Char8 as BS8
+import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.Text as T
 
 
@@ -164,7 +164,7 @@ gitTaggedVersions
 gitTaggedVersions url name =
   do
     out <- readProcessStdout_ (proc "git" ls_remote)
-    pure $ mapMaybe v (L.lines out)
+    pure $ mapMaybe v (BSL8.lines out)
   where
     ls_remote :: [String]
     ls_remote =
@@ -175,15 +175,15 @@ gitTaggedVersions url name =
       , name ++ "-*"
       ]
 
-    v :: L.ByteString -> Maybe String
-    v = fmap C.unpack
-      . C.stripPrefix prefix
+    v :: BSL8.ByteString -> Maybe String
+    v = fmap BS8.unpack
+      . BS8.stripPrefix prefix
       . snd
-      . C.breakSubstring prefix
-      . L.toStrict
+      . BS8.breakSubstring prefix
+      . BSL8.toStrict
 
-    prefix :: C.ByteString
-    prefix = "refs/tags/" <> C.pack name <> "-"
+    prefix :: BS8.ByteString
+    prefix = "refs/tags/" <> BS8.pack name <> "-"
 
 
 {-| hlibgit2 has a c'git_clone binding but using it would mean

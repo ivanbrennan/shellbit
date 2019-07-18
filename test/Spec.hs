@@ -11,6 +11,7 @@ import Test.Hspec           (after_, before_, hspec)
 import Test.Sandbox         (sbPath, refresh)
 import Test.Utils           (withEnv)
 
+import qualified NixShellBit.ColumnSpec    as ColumnSpec
 import qualified NixShellBit.ConfigSpec    as ConfigSpec
 import qualified NixShellBit.GitSpec       as GitSpec
 import qualified NixShellBit.MainSpec      as MainSpec
@@ -34,6 +35,7 @@ main =
             [("XDG_CONFIG_HOME", Just $ xdgConfigPath sand)]
             $ hspec $ before_ (refresh sbox) $ after_ removeTempClones $
             do
+              ColumnSpec.spec
               ConfigSpec.spec sand
               GitSpec.spec sand
               MainSpec.spec sand

@@ -19,7 +19,6 @@ let
   runtimeDeps = [
     git
     nix
-    utillinux
   ];
 
   devUtils = [
@@ -33,6 +32,10 @@ in
       name = "nix-shell-bit";
       paths = [ pkg ] ++ runtimeDeps;
     };
+
+    minimal = pkg.overrideAttrs (old: rec {
+      name = "nix-shell-bit-minimal";
+    });
 
     dev = drv.env.overrideAttrs (old: rec {
       buildInputs = old.buildInputs ++ runtimeDeps ++ devUtils;

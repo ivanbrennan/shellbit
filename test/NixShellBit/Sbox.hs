@@ -24,7 +24,7 @@ import System.Directory          (copyFile, createDirectory)
 import System.FilePath           ((</>))
 import Test.Utils                (silence, withEnv, withInput)
 
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString.Char8 as BS8
 import qualified Test.Sandbox as S
 
 
@@ -50,7 +50,7 @@ withSandbox =
             copyDirectoryRecursive silent "test/fixtures" (fixturesPath sand)
 
             _ <- withInput ["yes"] (silence configInit)
-            C.writeFile (xdgConfig </> "git/config") ""
+            BS8.writeFile (xdgConfig </> "git/config") ""
 
             -- configure sandbox Git user
             git_ ["config", "--global", "user.email", "nobody@example.com"]
@@ -58,7 +58,7 @@ withSandbox =
 
             -- setup remote project
             git_ ["init", "--quiet", "--template", "", remoteProj]
-            C.writeFile (remoteProj </> "VERSION") (C.pack initialVersion)
+            BS8.writeFile (remoteProj </> "VERSION") (BS8.pack initialVersion)
             git_ ["-C", remoteProj, "add", "VERSION"]
             git_ ["-C", remoteProj, "commit", "--quiet", "--message", "x"]
 
