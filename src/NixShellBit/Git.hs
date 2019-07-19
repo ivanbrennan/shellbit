@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -19,8 +20,10 @@ import Bindings.Libgit2     (C'git_strarray(C'git_strarray), C'git_remote,
                              c'git_remote_load, c'git_remote_url,
                              c'git_repository_discover, c'git_repository_free,
                              c'git_repository_open, withLibGitDo)
+import Control.Applicative  ((<|>))
 import Control.Exception    (finally)
 import Control.Monad        (void, when, (>=>))
+import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
 import Data.Attoparsec.Text (Parser, char, choice, inClass, maybeResult, option,
                              parse, takeWhile1)
 import Data.List            (intercalate)
@@ -30,8 +33,9 @@ import Foreign              (Ptr, alloca, allocaBytes, fromBool, peek, peekArray
                              sizeOf)
 import Foreign.C.String     (peekCString, withCString)
 import Foreign.C.Types      (CChar, CInt, CSize)
+import System.Exit          (ExitCode(ExitSuccess))
 import System.FilePath      (searchPathSeparator)
-import System.Process.Typed (proc, readProcessStdout_, readProcess_)
+import System.Process.Typed (proc, readProcess, readProcess_)
 import UnliftIO.Exception   (Exception, Typeable, throwIO)
 
 import qualified Data.ByteString.Char8 as BS8
@@ -162,18 +166,26 @@ gitTaggedVersions
   -> String
   -> IO [String]
 gitTaggedVersions url name =
-  do
-    out <- readProcessStdout_ (proc "git" ls_remote)
-    pure $ mapMaybe v (BSL8.lines out)
+    runMaybeT (lsRemote <|> lsRemoteBackCompat) >>= \case
+      Just out -> (pure . mapMaybe v . BSL8.lines) out
+      Nothing  -> throwIO (GitError "git ls-remote" "failed")
   where
-    ls_remote :: [String]
-    ls_remote =
-      [ "ls-remote"
-      , "--tags"
-      , "--sort=version:refname"
-      , T.unpack url
-      , name ++ "-*"
-      ]
+    lsRemote :: MaybeT IO BSL8.ByteString
+    lsRemote =
+      MaybeT $ git_ls_remote ["--tags", "--sort=version:refname"]
+
+    lsRemoteBackCompat :: MaybeT IO BSL8.ByteString
+    lsRemoteBackCompat =
+      MaybeT $ git_ls_remote ["--tags"]
+
+    git_ls_remote :: [String] -> IO (Maybe BSL8.ByteString)
+    git_ls_remote opts =
+      readProcess (proc "git" ("ls-remote" : opts ++ args)) >>= \case
+        (ExitSuccess, out, _) -> pure (Just out)
+        _                     -> pure Nothing
+
+    args :: [String]
+    args = [T.unpack url, name ++ "-*"]
 
     v :: BSL8.ByteString -> Maybe String
     v = fmap BS8.unpack
