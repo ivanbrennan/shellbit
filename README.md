@@ -51,7 +51,3 @@ update nixpkgs revision
 ```sh
 make update-nixpkgs REV=bc94dcf500286495e3c478a9f9322debc94c4304
 ```
-
-## Todos
-
-- [ ] use conduit-extra
