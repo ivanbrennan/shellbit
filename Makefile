@@ -43,12 +43,12 @@ lint: default.nix
 .PHONY: nix-build
 nix-build: default.nix
 	@echo "Running nix-build"
-	@nix-build ./nix --attr full
-
-.PHONY: nix-build-minimal
-nix-build-minimal: default.nix
-	@echo "Running nix-build"
 	@nix-build ./nix --attr minimal
+
+.PHONY: nix-build-full
+nix-build-full: default.nix
+	@echo "Running nix-build"
+	@nix-build ./nix --attr full
 
 .PHONY: completions
 completions: default.nix
@@ -59,16 +59,16 @@ completions: default.nix
 
 .PHONY: install
 install: default.nix
-	@nix-env --install --file ./nix --attr full
-
-.PHONY: install-minimal
-install-minimal: default.nix
 	@nix-env --install --file ./nix --attr minimal
+
+.PHONY: install-full
+install-full: default.nix
+	@nix-env --install --file ./nix --attr full
 
 .PHONY: uninstall
 uninstall: default.nix
 	@nix-env --uninstall $(PROJECT_NAME)
-	@nix-env --uninstall $(PROJECT_NAME)-minimal
+	@nix-env --uninstall $(PROJECT_NAME)-full
 
 default.nix: $(PROJECT_NAME).cabal
 	@echo "Generating default.nix"
