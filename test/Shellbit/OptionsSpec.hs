@@ -1,11 +1,11 @@
 module Shellbit.OptionsSpec (spec) where
 
+import Options.Applicative (briefDesc, defaultPrefs, execParserPure,
+                            getParseResult, info)
 import Shellbit.Options    (Options(Options), Command(List), Arg(Arg), optArgs,
                             optCommand, optProject, optVersion, options)
 import Shellbit.Project    (Project(Project))
 import Shellbit.Version    (Version(Version))
-import Options.Applicative (briefDesc, defaultPrefs, execParserPure,
-                            getParseResult, info)
 import Test.Hspec          (Expectation, HasCallStack, Spec, context, describe,
                             it, shouldBe)
 

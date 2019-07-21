@@ -1,7 +1,7 @@
 module Shellbit.VersionSpec (spec) where
 
-import Shellbit.Version (Version(Version), currentVersion, detectVersion)
 import Shellbit.Sbox    (fixturesPath, localProject)
+import Shellbit.Version (Version(Version), currentVersion, detectVersion)
 import System.Directory (createDirectoryIfMissing, copyFile,
                          removeDirectoryRecursive, withCurrentDirectory)
 import System.FilePath  ((</>))

@@ -4,6 +4,8 @@ module Shellbit.Main
   ) where
 
 import Data.Version        (showVersion)
+import Options.Applicative (briefDesc, execParser, info, infoOption, helper,
+                            hidden, short)
 import Shellbit.Git        (GitError(GitError))
 import Shellbit.Nix        (executeNixShell)
 import Shellbit.Operation  (Operation(ExecuteShell, ListVersions),
@@ -14,8 +16,6 @@ import Shellbit.PPrint     (Doc, fatal, listItems, noProject, noVersion,
                             noVersions, putDocLn, putVersionNotFound)
 import Shellbit.Project    (unProject)
 import Shellbit.Version    (unVersion)
-import Options.Applicative (briefDesc, execParser, info, infoOption, helper,
-                            hidden, short)
 import System.Exit         (exitFailure)
 import UnliftIO.Exception  (Handler(Handler), catches)
 

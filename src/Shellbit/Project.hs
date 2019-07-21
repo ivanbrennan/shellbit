@@ -5,8 +5,8 @@ module Shellbit.Project
   ) where
 
 import Data.List        (sortOn)
-import Shellbit.Git     (gitDiscoverRepo, gitRemoteGetUrl, gitRemoteList)
 import Safe             (headMay)
+import Shellbit.Git     (gitDiscoverRepo, gitRemoteGetUrl, gitRemoteList)
 import System.Directory (getCurrentDirectory, getHomeDirectory)
 import System.FilePath  (takeBaseName)
 

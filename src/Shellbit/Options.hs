@@ -5,10 +5,10 @@ module Shellbit.Options
   , options
   ) where
 
-import Shellbit.Project    (Project(Project))
-import Shellbit.Version    (Version(Version))
 import Options.Applicative (Parser, action, flag', help, long, many,
                             metavar, short, strArgument, strOption)
+import Shellbit.Project    (Project(Project))
+import Shellbit.Version    (Version(Version))
 
 
 data Options = Options
