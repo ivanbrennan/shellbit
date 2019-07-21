@@ -1,21 +1,21 @@
-module NixShellBit.MainSpec (spec) where
+module Shellbit.MainSpec (spec) where
 
-import Data.List             (intercalate)
-import NixShellBit.Main      (toOperation)
-import NixShellBit.Nix       (NixArguments(NixArguments))
-import NixShellBit.Operation (Operation(ExecuteShell))
-import NixShellBit.Options   (Options(Options), Command(Exec), optArgs,
-                              optCommand, optProject, optVersion)
-import NixShellBit.Project   (Project(Project))
-import NixShellBit.Sbox      (initialVersion, localProject, projectName, setVersions)
-import NixShellBit.Version   (Version(Version))
-import System.Directory      (removeDirectoryRecursive, removeFile)
-import System.Exit           (ExitCode(ExitFailure, ExitSuccess))
-import System.FilePath       ((</>))
-import Test.Hspec            (Spec, before_, context, describe, it, shouldBe,
-                              shouldContain)
-import Test.Utils            (capture, captureExitCode, captureStderr,
-                              prExitCode, shouldMatch, string)
+import Data.List          (intercalate)
+import Shellbit.Main      (toOperation)
+import Shellbit.Nix       (NixArguments(NixArguments))
+import Shellbit.Operation (Operation(ExecuteShell))
+import Shellbit.Options   (Options(Options), Command(Exec), optArgs, optCommand,
+                           optProject, optVersion)
+import Shellbit.Project   (Project(Project))
+import Shellbit.Sbox      (initialVersion, localProject, projectName, setVersions)
+import Shellbit.Version   (Version(Version))
+import System.Directory   (removeDirectoryRecursive, removeFile)
+import System.Exit        (ExitCode(ExitFailure, ExitSuccess))
+import System.FilePath    ((</>))
+import Test.Hspec         (Spec, before_, context, describe, it, shouldBe,
+                           shouldContain)
+import Test.Utils         (capture, captureExitCode, captureStderr, prExitCode,
+                           shouldMatch, string)
 
 
 spec :: FilePath -> Spec

@@ -10,15 +10,15 @@ in
 
       cd ${projectRoot} >/dev/null
 
-      cabal v2-exec --verbose=0 nix-shell-bit \
+      cabal v2-exec --verbose=0 shellbit \
           -- \
-          --bash-completion-script nix-shell-bit \
-          > completions/_nix-shell-bit.bash
+          --bash-completion-script shellbit \
+          > completions/_shellbit.bash
 
-      cabal v2-exec --verbose=0 nix-shell-bit \
+      cabal v2-exec --verbose=0 shellbit \
           -- \
-          --zsh-completion-script nix-shell-bit \
-          > completions/_nix-shell-bit.zsh
+          --zsh-completion-script shellbit \
+          > completions/_shellbit.zsh
 
       exit
     '';

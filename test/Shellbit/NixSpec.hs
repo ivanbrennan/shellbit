@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module NixShellBit.NixSpec (spec) where
+module Shellbit.NixSpec (spec) where
 
-import NixShellBit.Nix     (NixDerivation(NixDerivation),
-                            NixArguments(NixArguments), arguments, derivation)
-import NixShellBit.Options (Arg(Arg))
-import NixShellBit.Project (Project(Project), unProject)
-import NixShellBit.Sbox    (initialVersion, projectName, remoteNixShells)
-import NixShellBit.Version (Version(Version))
-import System.Directory    (doesDirectoryExist)
-import Test.Hspec          (Spec, describe, it, shouldBe, shouldReturn)
+import Shellbit.Nix     (NixArguments(NixArguments), NixDerivation(NixDerivation),
+                         arguments, derivation)
+import Shellbit.Options (Arg(Arg))
+import Shellbit.Project (Project(Project), unProject)
+import Shellbit.Sbox    (initialVersion, projectName, remoteNixShells)
+import Shellbit.Version (Version(Version))
+import System.Directory (doesDirectoryExist)
+import Test.Hspec       (Spec, describe, it, shouldBe, shouldReturn)
 
 import qualified Data.Text as T
 

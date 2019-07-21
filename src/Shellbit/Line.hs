@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module NixShellBit.Line
+module Shellbit.Line
   ( readline
   ) where
 

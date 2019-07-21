@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module NixShellBit.Sbox
+module Shellbit.Sbox
   ( addVersion
   , fixturesPath
   , initialVersion
@@ -18,8 +18,8 @@ module NixShellBit.Sbox
 import Data.Foldable             (traverse_)
 import Distribution.Simple.Utils (copyDirectoryRecursive)
 import Distribution.Verbosity    (silent)
-import NixShellBit.Git           (git_)
-import NixShellBit.Config        (configInit)
+import Shellbit.Config           (configInit)
+import Shellbit.Git              (git_)
 import System.Directory          (copyFile, createDirectory)
 import System.FilePath           ((</>))
 import Test.Utils                (silence, withEnv, withInput)
@@ -42,7 +42,7 @@ withSandbox =
       in
         withEnv
           [ ("XDG_CONFIG_HOME",   Just xdgConfig)
-          , ("NIX_SHELL_BIT_URL", Just remoteShells)
+          , ("SHELLBIT_URL", Just remoteShells)
           ] $
           do
             createDirectory xdgConfig

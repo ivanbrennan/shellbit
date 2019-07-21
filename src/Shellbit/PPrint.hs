@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module NixShellBit.PPrint
+module Shellbit.PPrint
   ( Doc
   , askSave
   , askUrl
@@ -14,13 +14,13 @@ module NixShellBit.PPrint
   , putVersionNotFound
   ) where
 
-import Data.Char            (toLower)
-import NixShellBit.Column   (grid, terminalWidth)
-import NixShellBit.Line     (readline)
-import System.IO            (Handle, hFlush, stderr, stdout)
+import Data.Char       (toLower)
+import Shellbit.Column (grid, terminalWidth)
+import Shellbit.Line   (readline)
+import System.IO       (Handle, hFlush, stderr, stdout)
 import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon, debold,
-                             displayS, dquotes, hcat, hPutDoc, hsep, line, red,
-                             renderPretty, space, text, vcat, yellow, (<+>))
+                        displayS, dquotes, hcat, hPutDoc, hsep, line, red,
+                        renderPretty, space, text, vcat, yellow, (<+>))
 
 import qualified Data.ByteString.Char8 as BS8
 
@@ -28,10 +28,10 @@ import qualified Data.ByteString.Char8 as BS8
 askUrl :: IO String
 askUrl =
   ask $ vcat
-      [ yellow "NIX_SHELL_BIT_URL not found in environment or config."
+      [ yellow "SHELLBIT_URL not found in environment or config."
       , "It should identify a git repo where we can find nix derivations"
       , "for your project shells. E.g. git@github.com:Foo/nix-shells.git"
-      , "Please enter" <+> bold "NIX_SHELL_BIT_URL" <> colon <> space
+      , "Please enter" <+> bold "SHELLBIT_URL" <> colon <> space
       ]
 
 

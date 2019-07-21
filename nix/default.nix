@@ -7,7 +7,7 @@ let
 
   hlib = haskell.lib;
 
-  pkg = hlib.generateOptparseApplicativeCompletion "nix-shell-bit" (
+  pkg = hlib.generateOptparseApplicativeCompletion "shellbit" (
     hlib.buildStrictly (
       (hlib.justStaticExecutables drv).overrideAttrs (old: rec {
         GHC_ENVIRONMENT = "-"; # ignore ghc environment files
@@ -29,11 +29,11 @@ let
 in
   rec {
     minimal = pkg.overrideAttrs (old: rec {
-      name = "nix-shell-bit";
+      name = "shellbit";
     });
 
     full = buildEnv {
-      name = "nix-shell-bit-full";
+      name = "shellbit-full";
       paths = [ pkg ] ++ runtimeDeps;
     };
 

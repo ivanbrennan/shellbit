@@ -1,14 +1,14 @@
-module NixShellBit.Options
+module Shellbit.Options
   ( Arg(..)
   , Command(..)
   , Options(..)
   , options
   ) where
 
-import NixShellBit.Project (Project(Project))
-import NixShellBit.Version (Version(Version))
 import Options.Applicative (Parser, action, flag', help, long, many,
                             metavar, short, strArgument, strOption)
+import Shellbit.Project    (Project(Project))
+import Shellbit.Version    (Version(Version))
 
 
 data Options = Options

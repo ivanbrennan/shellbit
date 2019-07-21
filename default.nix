@@ -5,7 +5,7 @@
 , transformers, typed-process, unix, unliftio
 }:
 mkDerivation {
-  pname = "nix-shell-bit";
+  pname = "shellbit";
   version = "0.1.0.0";
   src = ./.;
   isLibrary = true;

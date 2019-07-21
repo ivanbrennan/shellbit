@@ -1,4 +1,4 @@
-_nix-shell-bit()
+_shellbit()
 {
     local CMDLINE
     local IFS=$'\n'
@@ -8,7 +8,7 @@ _nix-shell-bit()
         CMDLINE=(${CMDLINE[@]} --bash-completion-word $arg)
     done
 
-    COMPREPLY=( $(nix-shell-bit "${CMDLINE[@]}") )
+    COMPREPLY=( $(shellbit "${CMDLINE[@]}") )
 }
 
-complete -o filenames -F _nix-shell-bit nix-shell-bit
+complete -o filenames -F _shellbit shellbit

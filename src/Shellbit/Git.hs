@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module NixShellBit.Git
+module Shellbit.Git
   ( GitError(..)
   , gitArchiveUrl
   , gitClone

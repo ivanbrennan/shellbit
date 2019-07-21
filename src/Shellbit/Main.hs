@@ -1,29 +1,29 @@
-module NixShellBit.Main
-  ( nixShellBit
+module Shellbit.Main
+  ( shellbit
   , toOperation
   ) where
 
-import Data.Version          (showVersion)
-import NixShellBit.Git       (GitError(GitError))
-import NixShellBit.Nix       (executeNixShell)
-import NixShellBit.Operation (Operation(ExecuteShell, ListVersions),
-                              OperationError(NoProject, NoVersion,
-                              NoVersionsFound, VersionNotFound), operation)
-import NixShellBit.Options   (Options, options)
-import NixShellBit.PPrint    (Doc, fatal, listItems, noProject, noVersion,
-                              noVersions, putDocLn, putVersionNotFound)
-import NixShellBit.Project   (unProject)
-import NixShellBit.Version   (unVersion)
-import Options.Applicative   (briefDesc, execParser, info, infoOption, helper,
-                              hidden, short)
-import System.Exit           (exitFailure)
-import UnliftIO.Exception    (Handler(Handler), catches)
+import Data.Version        (showVersion)
+import Options.Applicative (briefDesc, execParser, info, infoOption, helper,
+                            hidden, short)
+import Shellbit.Git        (GitError(GitError))
+import Shellbit.Nix        (executeNixShell)
+import Shellbit.Operation  (Operation(ExecuteShell, ListVersions),
+                            OperationError(NoProject, NoVersion,
+                            NoVersionsFound, VersionNotFound), operation)
+import Shellbit.Options    (Options, options)
+import Shellbit.PPrint     (Doc, fatal, listItems, noProject, noVersion,
+                            noVersions, putDocLn, putVersionNotFound)
+import Shellbit.Project    (unProject)
+import Shellbit.Version    (unVersion)
+import System.Exit         (exitFailure)
+import UnliftIO.Exception  (Handler(Handler), catches)
 
-import qualified Paths_nix_shell_bit as Self
+import qualified Paths_shellbit as Self
 
 
-nixShellBit :: IO ()
-nixShellBit =
+shellbit :: IO ()
+shellbit =
     execParser o >>= toOperation >>= run
   where
     o = info (helper <*> v <*> options) briefDesc

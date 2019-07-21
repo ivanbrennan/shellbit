@@ -1,4 +1,4 @@
-PROJECT_NAME ?= nix-shell-bit
+PROJECT_NAME ?= shellbit
 PROJECT_ROOT ?= $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 NIXPKGS_OWNER ?= NixOS

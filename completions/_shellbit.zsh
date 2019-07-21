@@ -1,4 +1,4 @@
-#compdef nix-shell-bit
+#compdef shellbit
 
 local request
 local completions
@@ -10,7 +10,7 @@ for arg in ${words[@]}; do
   request=(${request[@]} --bash-completion-word $arg)
 done
 
-IFS=$'\n' completions=($( nix-shell-bit "${request[@]}" ))
+IFS=$'\n' completions=($( shellbit "${request[@]}" ))
 
 for word in $completions; do
   local -a parts

@@ -1,7 +1,7 @@
-module NixShellBit.ColumnSpec (spec) where
+module Shellbit.ColumnSpec (spec) where
 
-import NixShellBit.Column (grid)
-import Test.Hspec         (Spec, describe, it, shouldBe)
+import Shellbit.Column (grid)
+import Test.Hspec      (Spec, describe, it, shouldBe)
 
 
 spec :: Spec

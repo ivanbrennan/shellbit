@@ -1,4 +1,4 @@
-module NixShellBit.Column
+module Shellbit.Column
   ( grid
   , terminalWidth
   ) where
