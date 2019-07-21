@@ -1,10 +1,10 @@
-module NixShellBit.ProjectSpec (spec) where
+module Shellbit.ProjectSpec (spec) where
 
 import Distribution.Simple.Utils (copyDirectoryRecursive)
 import Distribution.Verbosity    (silent)
-import NixShellBit.Git           (git_)
-import NixShellBit.Project       (Project(Project), currentProject, detectProject)
-import NixShellBit.Sbox          (localProject, remoteProject)
+import Shellbit.Git           (git_)
+import Shellbit.Project       (Project(Project), currentProject, detectProject)
+import Shellbit.Sbox          (localProject, remoteProject)
 import System.Directory          (removeDirectoryRecursive)
 import System.FilePath           (takeBaseName, (</>))
 import Test.Hspec                (Spec, before_, context, describe, it, shouldReturn)

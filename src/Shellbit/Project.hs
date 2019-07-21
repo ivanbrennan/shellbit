@@ -1,11 +1,11 @@
-module NixShellBit.Project
+module Shellbit.Project
   ( Project(..)
   , currentProject
   , detectProject
   ) where
 
 import Data.List        (sortOn)
-import NixShellBit.Git  (gitDiscoverRepo, gitRemoteGetUrl, gitRemoteList)
+import Shellbit.Git  (gitDiscoverRepo, gitRemoteGetUrl, gitRemoteList)
 import Safe             (headMay)
 import System.Directory (getCurrentDirectory, getHomeDirectory)
 import System.FilePath  (takeBaseName)

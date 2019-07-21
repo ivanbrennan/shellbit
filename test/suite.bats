@@ -31,11 +31,11 @@ colorstrip() {
         | grep -F 'Usage'
 }
 
-@test 'it prompts for NIX_SHELL_BIT_URL if it cannot be detected' {
+@test 'it prompts for SHELLBIT_URL if it cannot be detected' {
     local url="$REMOTE_SHELLS"
     local out
 
-    rm "$XDG_CONFIG_HOME/nix-shell-bit/config.dhall"
+    rm "$XDG_CONFIG_HOME/shellbit/config.dhall"
 
     out=$(
         pseudo_tty "$EXECUTABLE" \
@@ -43,8 +43,8 @@ colorstrip() {
             2>&1 | colorstrip
     )
 
-    grep -F 'NIX_SHELL_BIT_URL not found'    <<< "$out"
-    grep -F 'Please enter NIX_SHELL_BIT_URL' <<< "$out"
+    grep -F 'SHELLBIT_URL not found'    <<< "$out"
+    grep -F 'Please enter SHELLBIT_URL' <<< "$out"
 }
 
 @test 'it enters a development environment' {
@@ -57,7 +57,7 @@ colorstrip() {
         | grep -F "version: 0.1.0"
 }
 
-@test 'it can use a specific NIX_SHELL_BIT_BRANCH' {
+@test 'it can use a specific SHELLBIT_BRANCH' {
     git -C "$REMOTE_SHELLS" checkout -b fnord
     cat > "$REMOTE_SHELLS/default.nix" <<'EOF'
 {
@@ -71,7 +71,7 @@ colorstrip() {
 EOF
     git -C "$REMOTE_SHELLS" commit --all --quiet -m 'fnord'
 
-    NIX_SHELL_BIT_BRANCH=fnord \
+    SHELLBIT_BRANCH=fnord \
         "$EXECUTABLE" \
         | grep -F 'I am fnord'
 }

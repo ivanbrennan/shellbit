@@ -1,4 +1,4 @@
-module NixShellBit.Nix
+module Shellbit.Nix
   ( NixArguments(..)
   , NixDerivation(..)
   , derivation
@@ -9,10 +9,10 @@ module NixShellBit.Nix
 
 import Data.Maybe           (fromMaybe)
 import Data.Text            (Text)
-import NixShellBit.Git      (gitArchiveUrl, gitClone)
-import NixShellBit.Options  (Arg, unArg)
-import NixShellBit.Project  (Project(Project))
-import NixShellBit.Version  (Version(Version))
+import Shellbit.Git      (gitArchiveUrl, gitClone)
+import Shellbit.Options  (Arg, unArg)
+import Shellbit.Project  (Project(Project))
+import Shellbit.Version  (Version(Version))
 import System.IO.Temp       (createTempDirectory, getCanonicalTemporaryDirectory)
 import System.Posix.Process (executeFile)
 
@@ -75,4 +75,4 @@ executeNixShell (NixArguments args) =
 
 
 tmpClonePrefix :: String
-tmpClonePrefix = "nix-shell-bit-tmp-clone"
+tmpClonePrefix = "shellbit-tmp-clone"

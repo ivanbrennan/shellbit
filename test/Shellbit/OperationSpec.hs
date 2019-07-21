@@ -1,16 +1,16 @@
-module NixShellBit.OperationSpec (spec) where
+module Shellbit.OperationSpec (spec) where
 
-import NixShellBit.Config    (configPath)
-import NixShellBit.Nix       (NixArguments(NixArguments))
-import NixShellBit.Operation (Operation(ExecuteShell, ListVersions),
+import Shellbit.Config    (configPath)
+import Shellbit.Nix       (NixArguments(NixArguments))
+import Shellbit.Operation (Operation(ExecuteShell, ListVersions),
                               OperationError(NoProject, NoVersion,
                               NoVersionsFound, VersionNotFound), operation)
-import NixShellBit.Options   (Options(Options), Command(Exec, List), Arg(Arg),
+import Shellbit.Options   (Options(Options), Command(Exec, List), Arg(Arg),
                               optProject, optVersion, optCommand, optArgs)
-import NixShellBit.Project   (Project(Project))
-import NixShellBit.Sbox      (localProject, initialVersion, projectName,
+import Shellbit.Project   (Project(Project))
+import Shellbit.Sbox      (localProject, initialVersion, projectName,
                               remoteNixShells, setVersions, xdgConfigPath)
-import NixShellBit.Version   (Version(Version))
+import Shellbit.Version   (Version(Version))
 import System.Directory      (doesFileExist, removeDirectoryRecursive, removeFile)
 import System.Exit           (ExitCode(ExitFailure, ExitSuccess))
 import System.FilePath       ((</>))
@@ -37,7 +37,7 @@ spec sand =
           }
 
     it "initializes config" $ do
-      removeFile (xdgConfigPath sand </> "nix-shell-bit/config.dhall")
+      removeFile (xdgConfigPath sand </> "shellbit/config.dhall")
 
       _ <- withInput [remoteNixShells sand, "yes"]
          $ silence (operation opts)
@@ -121,17 +121,17 @@ spec sand =
           (== VersionNotFound [Version "0.0.5", Version "0.0.6"] version)
 
 
-    it "returns non-zero exit if NIX_SHELL_BIT_URL cannot be read" $ do
+    it "returns non-zero exit if SHELLBIT_URL cannot be read" $ do
       r <- withEnv
-           [("NIX_SHELL_BIT_URL", Just "/dev/null")]
+           [("SHELLBIT_URL", Just "/dev/null")]
            $ captureExitCode (operation opts)
 
       r `shouldBe` ExitFailure 1
 
 
-    it "returns non-zero exit if NIX_SHELL_BIT_BRANCH cannot be read" $ do
+    it "returns non-zero exit if SHELLBIT_BRANCH cannot be read" $ do
       r <- withEnv
-           [("NIX_SHELL_BIT_BRANCH", Just "fnord")]
+           [("SHELLBIT_BRANCH", Just "fnord")]
            $ captureExitCode (operation opts)
 
       r `shouldBe` ExitFailure 1

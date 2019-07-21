@@ -1,6 +1,6 @@
 module Main where
 
-import NixShellBit.Main (nixShellBit)
+import Shellbit.Main (shellbit)
 
 main :: IO ()
-main = nixShellBit
+main = shellbit

@@ -1,8 +1,8 @@
 module Main (main) where
 
 import Data.Foldable        (traverse_)
-import NixShellBit.Nix      (tmpClonePrefix)
-import NixShellBit.Sbox     (localProject, withSandbox, xdgConfigPath)
+import Shellbit.Nix      (tmpClonePrefix)
+import Shellbit.Sbox     (localProject, withSandbox, xdgConfigPath)
 import System.Directory     (removeDirectoryRecursive, withCurrentDirectory)
 import System.FilePath.Find (FileType(Directory), depth, fileName, fileType,
                              find, (==?), (~~?), (&&?))
@@ -11,16 +11,16 @@ import Test.Hspec           (after_, before_, hspec)
 import Test.Sandbox         (sbPath, refresh)
 import Test.Utils           (withEnv)
 
-import qualified NixShellBit.ColumnSpec    as ColumnSpec
-import qualified NixShellBit.ConfigSpec    as ConfigSpec
-import qualified NixShellBit.GitSpec       as GitSpec
-import qualified NixShellBit.MainSpec      as MainSpec
-import qualified NixShellBit.NixSpec       as NixSpec
-import qualified NixShellBit.OperationSpec as OperationSpec
-import qualified NixShellBit.OptionsSpec   as OptionsSpec
-import qualified NixShellBit.PPrintSpec    as PPrintSpec
-import qualified NixShellBit.ProjectSpec   as ProjectSpec
-import qualified NixShellBit.VersionSpec   as VersionSpec
+import qualified Shellbit.ColumnSpec    as ColumnSpec
+import qualified Shellbit.ConfigSpec    as ConfigSpec
+import qualified Shellbit.GitSpec       as GitSpec
+import qualified Shellbit.MainSpec      as MainSpec
+import qualified Shellbit.NixSpec       as NixSpec
+import qualified Shellbit.OperationSpec as OperationSpec
+import qualified Shellbit.OptionsSpec   as OptionsSpec
+import qualified Shellbit.PPrintSpec    as PPrintSpec
+import qualified Shellbit.ProjectSpec   as ProjectSpec
+import qualified Shellbit.VersionSpec   as VersionSpec
 
 
 main :: IO ()

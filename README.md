@@ -1,8 +1,8 @@
-## nix-shell-bit
+## shellbit
 
 Launch a nix-shell for the current project.
 ```sh
-nix-shell-bit
+shellbit
 ```
 
 ## install / uninstall

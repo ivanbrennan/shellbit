@@ -1,4 +1,4 @@
-module NixShellBit.Operation
+module Shellbit.Operation
   ( Operation(..)
   , OperationError(..)
   , operation
@@ -6,13 +6,13 @@ module NixShellBit.Operation
 
 import Control.Monad       (unless, when)
 import Data.Maybe          (fromMaybe)
-import NixShellBit.Config  (Config, configInit, cNixShellBitUrl, cNixShellBitBranch)
-import NixShellBit.Git     (gitTaggedVersions)
-import NixShellBit.Nix     (NixArguments, arguments, derivation)
-import NixShellBit.Options (Options, Command(Exec, List), optArgs, optCommand,
+import Shellbit.Config  (Config, configInit, cShellbitUrl, cShellbitBranch)
+import Shellbit.Git     (gitTaggedVersions)
+import Shellbit.Nix     (NixArguments, arguments, derivation)
+import Shellbit.Options (Options, Command(Exec, List), optArgs, optCommand,
                             optProject, optVersion)
-import NixShellBit.Project (Project, currentProject, unProject)
-import NixShellBit.Version (Version(Version), currentVersion)
+import Shellbit.Project (Project, currentProject, unProject)
+import Shellbit.Version (Version(Version), currentVersion)
 import UnliftIO.Exception  (Exception, Typeable, throwIO)
 
 
@@ -64,7 +64,7 @@ operation opts =
 
     taggedVersions :: Config -> Project -> IO [Version]
     taggedVersions config project =
-      map Version <$> gitTaggedVersions (cNixShellBitUrl config)
+      map Version <$> gitTaggedVersions (cShellbitUrl config)
                                         (unProject project)
 
     command :: Options -> Command
@@ -80,5 +80,5 @@ operation opts =
         drv <- derivation url branch project version
         pure $ arguments drv project (optArgs opts)
       where
-        url    = cNixShellBitUrl config
-        branch = cNixShellBitBranch config
+        url    = cShellbitUrl config
+        branch = cShellbitBranch config

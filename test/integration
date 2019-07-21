@@ -16,7 +16,7 @@ export REMOTE_SHELLS="$SAND/NIX_SHELLS"
 nix-shell --run 'cabal v2-build'
 export EXECUTABLE=$(find $TOPLEVEL           \
                          -type f -executable \
-                         -name nix-shell-bit \
+                         -name shellbit \
                          -printf "%T@ %p\n"  \
                     | sort -n | tail -n 1    \
                     | awk '{print $NF}')
@@ -32,12 +32,12 @@ touch "$XDG_CONFIG_HOME/git/config"
 git config --global user.email "nobody@example.com"
 git config --global user.name "nobody"
 
-# Configure sandbox nix-shell-bit
-mkdir "$XDG_CONFIG_HOME/nix-shell-bit"
-cat > "$XDG_CONFIG_HOME/nix-shell-bit/config.dhall" <<EOF
-{ nixShellBitUrl =
+# Configure sandbox shellbit
+mkdir "$XDG_CONFIG_HOME/shellbit"
+cat > "$XDG_CONFIG_HOME/shellbit/config.dhall" <<EOF
+{ shellbitUrl =
     [ "$REMOTE_SHELLS" ] : Optional Text
-, nixShellBitBranch =
+, shellbitBranch =
     [] : Optional Text
 }
 EOF

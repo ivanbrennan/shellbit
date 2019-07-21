@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module NixShellBit.Config
+module Shellbit.Config
   ( Config(..)
   , configInit
   , configPath
@@ -15,7 +15,7 @@ import Dhall                     (InputType, Type, embed, field, inputField,
                                   inputFile, inputRecord, record, strictText,
                                   (>$<), (>*<))
 import Dhall.Pretty              (prettyExpr)
-import NixShellBit.PPrint        (askSave, askUrl)
+import Shellbit.PPrint        (askSave, askUrl)
 import System.Directory          (XdgDirectory(XdgConfig),
                                   createDirectoryIfMissing, doesFileExist,
                                   findFile, getXdgDirectory)
@@ -28,14 +28,14 @@ import qualified Dhall
 
 
 data Config = Config
-  { cNixShellBitUrl    :: Text
-  , cNixShellBitBranch :: Maybe Text
+  { cShellbitUrl    :: Text
+  , cShellbitBranch :: Maybe Text
   } deriving Show
 
 
 data Attrs = Attrs
-  { nixShellBitUrl    :: Option (Last Text)
-  , nixShellBitBranch :: Option (Last Text)
+  { shellbitUrl    :: Option (Last Text)
+  , shellbitBranch :: Option (Last Text)
   } deriving Show
 
 instance Semigroup Attrs where
@@ -73,8 +73,8 @@ configInit =
 
     fromEnv :: IO Attrs
     fromEnv =
-      Attrs <$> envOption "NIX_SHELL_BIT_URL"
-            <*> envOption "NIX_SHELL_BIT_BRANCH"
+      Attrs <$> envOption "SHELLBIT_URL"
+            <*> envOption "SHELLBIT_BRANCH"
 
     envOption :: String -> IO (Option (Last Text))
     envOption =
@@ -94,7 +94,7 @@ configPath =
     directory = getXdgDirectory XdgConfig package
 
     package :: String
-    package = "nix-shell-bit"
+    package = "shellbit"
 
     fileName :: FilePath
     fileName = "config" <.> "dhall"
@@ -106,8 +106,8 @@ load =
   where
     attrs :: Type Attrs
     attrs =
-      record ( Attrs <$> field "nixShellBitUrl"    opt
-                     <*> field "nixShellBitBranch" opt )
+      record ( Attrs <$> field "shellbitUrl"    opt
+                     <*> field "shellbitBranch" opt )
 
     opt :: Type (Option (Last Text))
     opt =
@@ -129,8 +129,8 @@ save config =
 
     attrs :: Attrs
     attrs = Attrs
-      { nixShellBitUrl    = (toOption . Just . cNixShellBitUrl) config
-      , nixShellBitBranch = (toOption . cNixShellBitBranch) config
+      { shellbitUrl    = (toOption . Just . cShellbitUrl) config
+      , shellbitBranch = (toOption . cShellbitBranch) config
       }
 
 
@@ -140,11 +140,11 @@ serialize =
   where
     input :: InputType Attrs
     input =
-      inputRecord ( adapt >$< inputField "nixShellBitUrl"
-                          >*< inputField "nixShellBitBranch" )
+      inputRecord ( adapt >$< inputField "shellbitUrl"
+                          >*< inputField "shellbitBranch" )
 
     adapt :: Attrs -> (Maybe Text, Maybe Text)
     adapt attrs =
-      ( toMaybe (nixShellBitUrl    attrs)
-      , toMaybe (nixShellBitBranch attrs)
+      ( toMaybe (shellbitUrl    attrs)
+      , toMaybe (shellbitBranch attrs)
       )

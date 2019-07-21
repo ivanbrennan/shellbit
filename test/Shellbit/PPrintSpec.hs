@@ -1,7 +1,7 @@
-module NixShellBit.PPrintSpec (spec) where
+module Shellbit.PPrintSpec (spec) where
 
 import Data.List          (intercalate)
-import NixShellBit.PPrint (askSave, askUrl, listItems)
+import Shellbit.PPrint (askSave, askUrl, listItems)
 import Test.Hspec         (Spec, describe, it, shouldBe, shouldContain)
 import Test.Utils         (capture, captureStdout, captureStderr, prStderr,
                            shouldMatch, silence, string, withInput)
@@ -13,10 +13,10 @@ spec = do
     let url :: String
         url = "git@github.com:Foo/nix-shells.git"
 
-    it "prompts for NIX_SHELL_BIT_URL" $ do
+    it "prompts for SHELLBIT_URL" $ do
       e <- withInput [url] (captureStderr askUrl)
 
-      string e `shouldContain` "Please enter NIX_SHELL_BIT_URL"
+      string e `shouldContain` "Please enter SHELLBIT_URL"
 
 
     it "returns the provided input" $ do

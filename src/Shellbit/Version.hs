@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module NixShellBit.Version
+module Shellbit.Version
   ( Version(..)
   , currentVersion
   , detectVersion
@@ -16,7 +16,7 @@ import Distribution.Package      (packageVersion)
 import Distribution.PackageDescription.Parsec (readGenericPackageDescription)
 import Distribution.Pretty       (prettyShow)
 import Distribution.Verbosity    (silent)
-import NixShellBit.Git           (gitDiscoverRepo)
+import Shellbit.Git           (gitDiscoverRepo)
 import System.Directory          (getCurrentDirectory, getHomeDirectory)
 import System.FilePath           (dropTrailingPathSeparator, takeDirectory)
 import System.FilePath.Find      (FileType(RegularFile), FilterPredicate, depth,

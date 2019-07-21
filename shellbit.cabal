@@ -1,4 +1,4 @@
-name:                nix-shell-bit
+name:                shellbit
 version:             0.1.0.0
 cabal-version:       >=1.10
 author:              ivanbrennan
@@ -16,19 +16,19 @@ extra-source-files:
 
 library
   exposed-modules:
-      NixShellBit.Config
-      NixShellBit.Git
-      NixShellBit.Main
-      NixShellBit.Nix
-      NixShellBit.Operation
-      NixShellBit.Options
-      NixShellBit.PPrint
-      NixShellBit.Project
-      NixShellBit.Version
-      NixShellBit.Column
+      Shellbit.Config
+      Shellbit.Git
+      Shellbit.Main
+      Shellbit.Nix
+      Shellbit.Operation
+      Shellbit.Options
+      Shellbit.PPrint
+      Shellbit.Project
+      Shellbit.Version
+      Shellbit.Column
   other-modules:
-      NixShellBit.Line
-      Paths_nix_shell_bit
+      Shellbit.Line
+      Paths_shellbit
   build-depends:
       aeson                >= 1.4      && < 1.5
     , ansi-wl-pprint       >= 0.6      && < 0.7
@@ -57,31 +57,31 @@ library
   ghc-options: -Wall -O2
   default-language: Haskell2010
 
-executable nix-shell-bit
-  main-is: nix-shell-bit.hs
+executable shellbit
+  main-is: shellbit.hs
   build-depends:
       base
-    , nix-shell-bit
+    , shellbit
   hs-source-dirs:
       app
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   default-language: Haskell2010
 
-test-suite nix-shell-bit-test
+test-suite shellbit-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      NixShellBit.ColumnSpec
-      NixShellBit.ConfigSpec
-      NixShellBit.GitSpec
-      NixShellBit.MainSpec
-      NixShellBit.NixSpec
-      NixShellBit.OperationSpec
-      NixShellBit.OptionsSpec
-      NixShellBit.PPrintSpec
-      NixShellBit.ProjectSpec
-      NixShellBit.Sbox
-      NixShellBit.VersionSpec
+      Shellbit.ColumnSpec
+      Shellbit.ConfigSpec
+      Shellbit.GitSpec
+      Shellbit.MainSpec
+      Shellbit.NixSpec
+      Shellbit.OperationSpec
+      Shellbit.OptionsSpec
+      Shellbit.PPrintSpec
+      Shellbit.ProjectSpec
+      Shellbit.Sbox
+      Shellbit.VersionSpec
       Test.Sandbox
       Test.Utils
   hs-source-dirs:
@@ -96,7 +96,7 @@ test-suite nix-shell-bit-test
     , filepath
     , hspec
     , main-tester
-    , nix-shell-bit
+    , shellbit
     , optparse-applicative
     , regex-tdfa
     , temporary
