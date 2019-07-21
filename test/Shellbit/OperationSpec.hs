@@ -3,21 +3,21 @@ module Shellbit.OperationSpec (spec) where
 import Shellbit.Config    (configPath)
 import Shellbit.Nix       (NixArguments(NixArguments))
 import Shellbit.Operation (Operation(ExecuteShell, ListVersions),
-                              OperationError(NoProject, NoVersion,
-                              NoVersionsFound, VersionNotFound), operation)
+                           OperationError(NoProject, NoVersion,
+                           NoVersionsFound, VersionNotFound), operation)
 import Shellbit.Options   (Options(Options), Command(Exec, List), Arg(Arg),
-                              optProject, optVersion, optCommand, optArgs)
+                           optProject, optVersion, optCommand, optArgs)
 import Shellbit.Project   (Project(Project))
 import Shellbit.Sbox      (localProject, initialVersion, projectName,
-                              remoteNixShells, setVersions, xdgConfigPath)
+                           remoteNixShells, setVersions, xdgConfigPath)
 import Shellbit.Version   (Version(Version))
-import System.Directory      (doesFileExist, removeDirectoryRecursive, removeFile)
-import System.Exit           (ExitCode(ExitFailure, ExitSuccess))
-import System.FilePath       ((</>))
-import Test.Hspec            (Spec, before_, context, describe, it, shouldBe,
-                              shouldReturn, shouldThrow)
-import Test.Utils            (capture, captureExitCode, prExitCode, silence,
-                              withEnv, withInput)
+import System.Directory   (doesFileExist, removeDirectoryRecursive, removeFile)
+import System.Exit        (ExitCode(ExitFailure, ExitSuccess))
+import System.FilePath    ((</>))
+import Test.Hspec         (Spec, before_, context, describe, it, shouldBe,
+                           shouldReturn, shouldThrow)
+import Test.Utils         (capture, captureExitCode, prExitCode, silence,
+                           withEnv, withInput)
 
 
 spec :: FilePath -> Spec

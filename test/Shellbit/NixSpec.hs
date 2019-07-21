@@ -2,14 +2,14 @@
 
 module Shellbit.NixSpec (spec) where
 
-import Shellbit.Nix     (NixDerivation(NixDerivation),
-                            NixArguments(NixArguments), arguments, derivation)
+import Shellbit.Nix     (NixArguments(NixArguments), NixDerivation(NixDerivation),
+                         arguments, derivation)
 import Shellbit.Options (Arg(Arg))
 import Shellbit.Project (Project(Project), unProject)
 import Shellbit.Sbox    (initialVersion, projectName, remoteNixShells)
 import Shellbit.Version (Version(Version))
-import System.Directory    (doesDirectoryExist)
-import Test.Hspec          (Spec, describe, it, shouldBe, shouldReturn)
+import System.Directory (doesDirectoryExist)
+import Test.Hspec       (Spec, describe, it, shouldBe, shouldReturn)
 
 import qualified Data.Text as T
 

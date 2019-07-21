@@ -9,10 +9,10 @@ module Shellbit.Nix
 
 import Data.Maybe           (fromMaybe)
 import Data.Text            (Text)
-import Shellbit.Git      (gitArchiveUrl, gitClone)
-import Shellbit.Options  (Arg, unArg)
-import Shellbit.Project  (Project(Project))
-import Shellbit.Version  (Version(Version))
+import Shellbit.Git         (gitArchiveUrl, gitClone)
+import Shellbit.Options     (Arg, unArg)
+import Shellbit.Project     (Project(Project))
+import Shellbit.Version     (Version(Version))
 import System.IO.Temp       (createTempDirectory, getCanonicalTemporaryDirectory)
 import System.Posix.Process (executeFile)
 

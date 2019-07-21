@@ -3,21 +3,21 @@ module Shellbit.Main
   , toOperation
   ) where
 
-import Data.Version          (showVersion)
-import Shellbit.Git       (GitError(GitError))
-import Shellbit.Nix       (executeNixShell)
-import Shellbit.Operation (Operation(ExecuteShell, ListVersions),
-                              OperationError(NoProject, NoVersion,
-                              NoVersionsFound, VersionNotFound), operation)
-import Shellbit.Options   (Options, options)
-import Shellbit.PPrint    (Doc, fatal, listItems, noProject, noVersion,
-                              noVersions, putDocLn, putVersionNotFound)
-import Shellbit.Project   (unProject)
-import Shellbit.Version   (unVersion)
-import Options.Applicative   (briefDesc, execParser, info, infoOption, helper,
-                              hidden, short)
-import System.Exit           (exitFailure)
-import UnliftIO.Exception    (Handler(Handler), catches)
+import Data.Version        (showVersion)
+import Shellbit.Git        (GitError(GitError))
+import Shellbit.Nix        (executeNixShell)
+import Shellbit.Operation  (Operation(ExecuteShell, ListVersions),
+                            OperationError(NoProject, NoVersion,
+                            NoVersionsFound, VersionNotFound), operation)
+import Shellbit.Options    (Options, options)
+import Shellbit.PPrint     (Doc, fatal, listItems, noProject, noVersion,
+                            noVersions, putDocLn, putVersionNotFound)
+import Shellbit.Project    (unProject)
+import Shellbit.Version    (unVersion)
+import Options.Applicative (briefDesc, execParser, info, infoOption, helper,
+                            hidden, short)
+import System.Exit         (exitFailure)
+import UnliftIO.Exception  (Handler(Handler), catches)
 
 import qualified Paths_shellbit as Self
 

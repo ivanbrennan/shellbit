@@ -1,7 +1,7 @@
 module Shellbit.ColumnSpec (spec) where
 
 import Shellbit.Column (grid)
-import Test.Hspec         (Spec, describe, it, shouldBe)
+import Test.Hspec      (Spec, describe, it, shouldBe)
 
 
 spec :: Spec

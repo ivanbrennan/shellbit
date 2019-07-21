@@ -15,7 +15,7 @@ import Dhall                     (InputType, Type, embed, field, inputField,
                                   inputFile, inputRecord, record, strictText,
                                   (>$<), (>*<))
 import Dhall.Pretty              (prettyExpr)
-import Shellbit.PPrint        (askSave, askUrl)
+import Shellbit.PPrint           (askSave, askUrl)
 import System.Directory          (XdgDirectory(XdgConfig),
                                   createDirectoryIfMissing, doesFileExist,
                                   findFile, getXdgDirectory)

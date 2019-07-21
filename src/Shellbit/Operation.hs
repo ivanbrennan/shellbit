@@ -4,16 +4,16 @@ module Shellbit.Operation
   , operation
   ) where
 
-import Control.Monad       (unless, when)
-import Data.Maybe          (fromMaybe)
-import Shellbit.Config  (Config, configInit, cShellbitUrl, cShellbitBranch)
-import Shellbit.Git     (gitTaggedVersions)
-import Shellbit.Nix     (NixArguments, arguments, derivation)
-import Shellbit.Options (Options, Command(Exec, List), optArgs, optCommand,
-                            optProject, optVersion)
-import Shellbit.Project (Project, currentProject, unProject)
-import Shellbit.Version (Version(Version), currentVersion)
-import UnliftIO.Exception  (Exception, Typeable, throwIO)
+import Control.Monad      (unless, when)
+import Data.Maybe         (fromMaybe)
+import Shellbit.Config    (Config, configInit, cShellbitUrl, cShellbitBranch)
+import Shellbit.Git       (gitTaggedVersions)
+import Shellbit.Nix       (NixArguments, arguments, derivation)
+import Shellbit.Options   (Options, Command(Exec, List), optArgs, optCommand,
+                           optProject, optVersion)
+import Shellbit.Project   (Project, currentProject, unProject)
+import Shellbit.Version   (Version(Version), currentVersion)
+import UnliftIO.Exception (Exception, Typeable, throwIO)
 
 
 data Operation

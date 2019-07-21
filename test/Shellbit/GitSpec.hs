@@ -3,9 +3,9 @@
 module Shellbit.GitSpec (spec) where
 
 import Data.Foldable        (traverse_)
-import Shellbit.Git      (GitError, gitArchiveUrl, gitClone, gitDiscoverRepo,
+import Shellbit.Git         (GitError, gitArchiveUrl, gitClone, gitDiscoverRepo,
                              gitRemoteList, gitTaggedVersions, gitRemoteGetUrl)
-import Shellbit.Sbox     (localProject, projectName, remoteProject,
+import Shellbit.Sbox        (localProject, projectName, remoteProject,
                              remoteNixShells, setTags)
 import System.Directory     (createDirectory, createDirectoryIfMissing)
 import System.FilePath      ((</>))

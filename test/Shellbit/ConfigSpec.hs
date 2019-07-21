@@ -1,12 +1,12 @@
 module Shellbit.ConfigSpec (spec) where
 
-import Shellbit.Config (configInit, configPath, cShellbitUrl)
-import Shellbit.Sbox   (remoteNixShells, xdgConfigPath)
-import System.Directory   (doesFileExist, removeFile)
-import System.FilePath    ((</>))
-import Test.Hspec         (Spec, before_, context, describe, it, shouldBe,
-                           shouldContain, shouldNotContain)
-import Test.Utils         (capture, prStderr, silence, string, withEnv, withInput)
+import Shellbit.Config  (configInit, configPath, cShellbitUrl)
+import Shellbit.Sbox    (remoteNixShells, xdgConfigPath)
+import System.Directory (doesFileExist, removeFile)
+import System.FilePath  ((</>))
+import Test.Hspec       (Spec, before_, context, describe, it, shouldBe,
+                         shouldContain, shouldNotContain)
+import Test.Utils       (capture, prStderr, silence, string, withEnv, withInput)
 
 import qualified Data.Text as T
 

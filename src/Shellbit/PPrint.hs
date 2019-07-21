@@ -14,13 +14,13 @@ module Shellbit.PPrint
   , putVersionNotFound
   ) where
 
-import Data.Char            (toLower)
-import Shellbit.Column   (grid, terminalWidth)
-import Shellbit.Line     (readline)
-import System.IO            (Handle, hFlush, stderr, stdout)
+import Data.Char       (toLower)
+import Shellbit.Column (grid, terminalWidth)
+import Shellbit.Line   (readline)
+import System.IO       (Handle, hFlush, stderr, stdout)
 import Text.PrettyPrint.ANSI.Leijen (Doc, bold, brackets, char, colon, debold,
-                             displayS, dquotes, hcat, hPutDoc, hsep, line, red,
-                             renderPretty, space, text, vcat, yellow, (<+>))
+                        displayS, dquotes, hcat, hPutDoc, hsep, line, red,
+                        renderPretty, space, text, vcat, yellow, (<+>))
 
 import qualified Data.ByteString.Char8 as BS8
 

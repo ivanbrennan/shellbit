@@ -1,8 +1,8 @@
 module Main (main) where
 
 import Data.Foldable        (traverse_)
-import Shellbit.Nix      (tmpClonePrefix)
-import Shellbit.Sbox     (localProject, withSandbox, xdgConfigPath)
+import Shellbit.Nix         (tmpClonePrefix)
+import Shellbit.Sbox        (localProject, withSandbox, xdgConfigPath)
 import System.Directory     (removeDirectoryRecursive, withCurrentDirectory)
 import System.FilePath.Find (FileType(Directory), depth, fileName, fileType,
                              find, (==?), (~~?), (&&?))

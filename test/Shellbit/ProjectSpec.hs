@@ -2,9 +2,9 @@ module Shellbit.ProjectSpec (spec) where
 
 import Distribution.Simple.Utils (copyDirectoryRecursive)
 import Distribution.Verbosity    (silent)
-import Shellbit.Git           (git_)
-import Shellbit.Project       (Project(Project), currentProject, detectProject)
-import Shellbit.Sbox          (localProject, remoteProject)
+import Shellbit.Git              (git_)
+import Shellbit.Project          (Project(Project), currentProject, detectProject)
+import Shellbit.Sbox             (localProject, remoteProject)
 import System.Directory          (removeDirectoryRecursive)
 import System.FilePath           (takeBaseName, (</>))
 import Test.Hspec                (Spec, before_, context, describe, it, shouldReturn)

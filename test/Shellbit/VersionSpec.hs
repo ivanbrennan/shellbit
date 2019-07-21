@@ -2,11 +2,12 @@ module Shellbit.VersionSpec (spec) where
 
 import Shellbit.Version (Version(Version), currentVersion, detectVersion)
 import Shellbit.Sbox    (fixturesPath, localProject)
-import System.Directory    (createDirectoryIfMissing, copyFile,
-                            removeDirectoryRecursive, withCurrentDirectory)
-import System.FilePath     ((</>))
-import Test.Hspec          (Spec, around_, before_, context, describe, it,
-                            shouldReturn)
+import System.Directory (createDirectoryIfMissing, copyFile,
+                         removeDirectoryRecursive, withCurrentDirectory)
+import System.FilePath  ((</>))
+import Test.Hspec       (Spec, around_, before_, context, describe, it,
+                         shouldReturn)
+
 
 spec :: FilePath -> Spec
 spec sand = do

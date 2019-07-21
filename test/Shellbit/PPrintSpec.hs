@@ -1,10 +1,10 @@
 module Shellbit.PPrintSpec (spec) where
 
-import Data.List          (intercalate)
+import Data.List       (intercalate)
 import Shellbit.PPrint (askSave, askUrl, listItems)
-import Test.Hspec         (Spec, describe, it, shouldBe, shouldContain)
-import Test.Utils         (capture, captureStdout, captureStderr, prStderr,
-                           shouldMatch, silence, string, withInput)
+import Test.Hspec      (Spec, describe, it, shouldBe, shouldContain)
+import Test.Utils      (capture, captureStdout, captureStderr, prStderr,
+                        shouldMatch, silence, string, withInput)
 
 
 spec :: Spec
