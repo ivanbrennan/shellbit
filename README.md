@@ -5,6 +5,17 @@ Launch a nix-shell for the current project.
 shellbit
 ```
 
+## install from expression
+
+```sh
+nix-env -iE '_:
+  let
+    url = https://github.com/ivanbrennan/shellbit/archive/0.1.0.0.tar.gz;
+  in
+    (import "${builtins.fetchTarball url}/nix" { }).minimal
+'
+```
+
 ## install / uninstall
 
 ```sh
