@@ -5,7 +5,7 @@ Launch a nix-shell for the current project.
 shellbit
 ```
 
-## install from expression
+### install from expression
 
 ```sh
 nix-env -iE '_:
@@ -16,7 +16,7 @@ nix-env -iE '_:
 '
 ```
 
-## install / uninstall
+### install / uninstall
 
 ```sh
 make install
@@ -26,7 +26,7 @@ make install
 make uninstall
 ```
 
-## development
+### development
 
 build
 ```sh
