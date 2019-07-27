@@ -70,3 +70,7 @@ update nixpkgs revision
 ```sh
 make update-nixpkgs REV=bc94dcf500286495e3c478a9f9322debc94c4304
 ```
+
+### similar projects
+
+* Repository to maintain out-of-tree shell.nix files: https://github.com/nix-community/nix-environments
