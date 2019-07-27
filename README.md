@@ -5,6 +5,14 @@ Launch a nix-shell for the current project.
 shellbit
 ```
 
+The first time you run `shellbit`, it will prompt you for the url of the git
+repo where your nix-shell recipes are kept.
+
+An example repo can be found at `git@github.com:ivanbrennan/nixels.git`
+([nixels](https://github.com/ivanbrennan/nixels)).
+
+If you choose to save this config, subsequent uses will work without prompting.
+
 ### install from expression
 
 ```sh
