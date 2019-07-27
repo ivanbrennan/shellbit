@@ -33,7 +33,7 @@ detectProject repo =
 
     case prefer "origin" remotes of
       Nothing -> pure Nothing
-      Just o  -> Just . basename <$> gitRemoteGetUrl repo o
+      Just og -> Just . basename <$> gitRemoteGetUrl repo og
   where
     prefer :: String -> [String] -> Maybe String
     prefer fav =
