@@ -23,6 +23,7 @@ let
 
   devUtils = [
     cabal-install
+    haskellPackages.ghcid
     hlint
   ];
 

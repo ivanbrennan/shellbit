@@ -40,6 +40,14 @@ lint: default.nix
 		--attr dev \
 		--run "hlint $(PROJECT_ROOT)/src $(PROJECT_ROOT)/test"
 
+.PHONY: watch
+watch: default.nix
+	@echo "Running ghcid"
+	@nix-shell \
+		--pure ./nix \
+		--attr dev \
+		--run "ghcid '--command=cabal v2-repl'"
+
 .PHONY: nix-build
 nix-build: default.nix
 	@echo "Running nix-build"
