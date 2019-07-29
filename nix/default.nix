@@ -21,9 +21,14 @@ let
     nix
   ];
 
+  devDrv = hlib.overrideCabal drv (old: rec {
+    libraryHaskellDepends = old.libraryHaskellDepends ++ [
+      haskellPackages.criterion
+    ];
+  });
+
   devUtils = [
     cabal-install
-    haskellPackages.criterion
     haskellPackages.ghcid
     hlint
   ];
@@ -39,12 +44,12 @@ in
       paths = [ pkg ] ++ runtimeDeps;
     };
 
-    dev = drv.env.overrideAttrs (old: rec {
+    dev = devDrv.env.overrideAttrs (old: rec {
       buildInputs = old.buildInputs ++ runtimeDeps ++ devUtils;
     });
 
     shell = haskellPackages.shellFor {
-      packages = p: [ drv ];
+      packages = p: [ devDrv ];
       buildInputs = runtimeDeps ++ devUtils;
       shellHook = builtins.readFile ./prompt.sh;
     };
