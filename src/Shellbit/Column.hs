@@ -6,11 +6,13 @@ module Shellbit.Column
 import Control.Applicative       ((<|>))
 import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
 import Data.Foldable             (foldl')
+import Data.IntMap.Strict        (IntMap, (!))
 import Data.List                 (unfoldr)
 import Data.Maybe                (fromMaybe)
 import System.Environment        (lookupEnv)
 import Text.Read                 (readMaybe)
 
+import qualified Data.IntMap.Strict as IntMap
 import qualified System.Console.Terminal.Size as Terminal
 
 
@@ -27,12 +29,18 @@ grid :: [String] -> Int -> [[Column]]
 grid [] _     = []
 grid xs width =
     if maxLength >= width
-      then map (\x -> [(x, "")]) items
+      then map singleColumn items
       else map (unfoldr column) [0 .. numrows - 1]
   where
     maxLength :: Int
     maxLength =
       foldl' (\z -> max z . length) 0 items
+
+    items :: [String]
+    items = filter (not . null) xs
+
+    singleColumn :: String -> [Column]
+    singleColumn x = [(x, "")]
 
     column :: Int -> Maybe (Column, Int)
     column i =
@@ -41,7 +49,7 @@ grid xs width =
           else Just ((item, padding), i + numrows)
       where
         item :: String
-        item = items !! i
+        item = itemMap ! i
 
         padding :: Padding
         padding = replicate padCount '\t'
@@ -74,8 +82,9 @@ grid xs width =
     numItems :: Int
     numItems = length items
 
-    items :: [String]
-    items = filter (not . null) xs
+    itemMap :: IntMap String
+    itemMap =
+      IntMap.fromAscList (zip [0..] items)
 
 
 terminalWidth :: IO Int
